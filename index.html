@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>إدارة مهام My Exams</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    table {
+  width: 100%;
+  min-width: 1250px;
+  border-collapse: collapse;
+  background: var(--card-bg);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  table-layout: fixed; /* 🔁 أضف هذا السطر */
+}
+
+    :root {
+      --primary: #0069d9;
+      --primary-hover: #0053b3;
+      --light-bg: #f5f7fa;
+      --card-bg: #ffffff;
+      --border: #dfe3e8;
+      --text-dark: #212529;
+      --shadow: 0 6px 24px rgba(0,0,0,0.08);
+      --danger: #dc3545;
+    }
+    * { box-sizing: border-box; font-family: "Cairo", sans-serif; transition: all .3s ease; }
+    body { margin: 0; padding: 32px 16px; background: var(--light-bg); color: var(--text-dark); }
+    h2 { text-align: center; margin-bottom: 32px; font-weight: 700; font-size: 2.2rem; color: var(--primary); text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+    .login-box { max-width: 420px; margin: 0 auto 40px; background: #fff; padding: 28px; border-radius: 20px; box-shadow: var(--shadow); text-align: center; }
+    .login-box input { width: 100%; padding: 14px; margin: 12px 0; border: 1px solid var(--border); border-radius: 10px; font-size: 1rem; }
+    .login-box button { background: var(--primary); color: #fff; border: none; padding: 12px 26px; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; box-shadow: 0 3px 12px rgba(0,105,217,0.3); }
+    .login-box button:hover { background: var(--primary-hover); transform: scale(1.05); }
+
+    #taskForm { display: none; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap: 20px; max-width: 1150px; margin: 0 auto; background: var(--card-bg); padding: 36px; border-radius: 20px; box-shadow: var(--shadow); align-items: end; }
+    #taskForm label { display: flex; flex-direction: column; font-weight: 600; gap: 8px; }
+    #taskForm input, #taskForm button { padding: 14px 16px; border: 1px solid var(--border); border-radius: 12px; font-size: 1rem; }
+    #taskForm button { background: var(--primary); color: #fff; font-weight: 700; cursor: pointer; }
+    #taskForm button:hover { background: var(--primary-hover); transform: scale(1.04); }
+
+    .table-wrapper { max-width: 100%; overflow-x: auto; margin-top: 48px; }
+    table { width: 100%; min-width: 1250px; border-collapse: collapse; background: var(--card-bg); border-radius: 20px; overflow: hidden; box-shadow: var(--shadow); }
+    thead th { position: sticky; top: 0; background: #e9ecef; font-weight: bold; font-size: 1rem; padding: 16px 0; }
+    th,td { padding: 14px 12px; border: 1px solid var(--border); text-align: center; font-size: 0.9rem; }
+    tr:nth-child(even) { background: #fdfdfd; }
+    tr:hover { background: #f1f5f8; }
+
+    .accounting-row td { background-color: #fef9e7; font-weight: bold; }
+
+    .total-summary { margin-top: 20px; max-width: 1150px; background: #fff; padding: 20px; border-radius: 16px; box-shadow: var(--shadow); font-size: 1.1rem; }
+  </style>
+</head>
+<body>
+   <div style="text-align:center; margin-bottom: 20px; font-family: 'Cairo', sans-serif;">
+  <p style="font-size: 1.8rem; font-weight: bold; color: #0069d9; margin: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيمِ
+  </p>
+</div>
+
+
+
+  <h2>قائمة المهام لمشروع My Exams</h2>
+  <div class="login-box" id="loginBox">
+    <input type="password" id="adminPass" placeholder="أدخل كلمة المرور" />
+    <button onclick="checkLogin()">دخول</button>
+  </div>
+
+ <form id="taskForm">
+  <label class="priority-wrap"><input type="checkbox" id="priorityFlag" /> أولوية</label>
+  <label>رقم المحاضرة<input type="text" id="sessionNumber" required /></label>
+  <label>اسم الأستاذ<input type="text" id="teacherName" required /></label>
+  <label>تاريخ التصوير<input type="date" id="recordDate" required /></label>
+  <button type="submit">إضافة</button>
+</form>
+
+
+  <div class="table-wrapper">
+    <table id="taskTable">
+<thead>
+  <tr>
+    <th>الأولوية</th>
+    <th>رقم المحاضرة</th>
+    <th>اسم الأستاذ</th>
+    <th>تنسيق</th><th>اسم المنسق</th>
+    <th>رفع</th><th>اسم الرافع</th>
+    <th>إدخال ملف</th><th>اسم المدخل</th>
+    <th>رفع أسئلة</th><th>اسم الرافع</th>
+    <th>إدخال أسئلة</th><th>اسم المدخل</th>
+    <th>تاريخ التصوير</th><th>اسم المصور</th>
+    <th>مونتاج</th><th>اسم الممنتج</th>
+    <th>إدخال فيديو</th><th>اسم المدخل</th>
+    <th>النشر تصميم البوست مع الكتابة</th><th>اسم الكاتب</th>
+    <th>تسويق وحملات إعلانية معينة</th>
+    <th>الكلفة النهائية</th>
+    <th>حذف</th>
+  </tr>
+</thead>
+
+
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <div class="total-summary" id="summaryBox" style="display:none">
+    💰 <strong>إجمالي الكلفة:</strong> <span id="totalCost">0</span> ل.س
+  </div>
+
+  <script>
+    const PASSWORDS={admin:"admin123",accountant:"account123"};
+    let currentRole="guest";
+
+    function checkLogin(){
+      const pass=document.getElementById("adminPass").value.trim();
+      if(pass===PASSWORDS.admin) currentRole="admin";
+      else if(pass===PASSWORDS.accountant) currentRole="accountant";
+      else return alert("كلمة المرور غير صحيحة");
+      document.getElementById("loginBox").style.display="none";
+      if(currentRole==="admin") document.getElementById("taskForm").style.display="grid";
+      document.getElementById("summaryBox").style.display="block";
+      calculateSummary();
+    }
+
+    document.getElementById("taskForm").addEventListener("submit",e=>{
+      e.preventDefault();
+      const priority=document.getElementById("priorityFlag").checked?"✅":"❌";
+      const num=document.getElementById("sessionNumber").value.trim();
+      const teacher=document.getElementById("teacherName").value.trim();
+      const date=document.getElementById("recordDate").value;
+      addLectureRow(priority,num,teacher,date);
+      document.getElementById("taskForm").reset();
+      sortTable();
+    });
+function addLectureRow(priority, num, teacher, date) {
+  const tableBody = document.getElementById("tableBody");
+  const mainRow   = document.createElement("tr");
+  const costRow   = document.createElement("tr");
+  costRow.classList.add("accounting-row");
+
+  // 🟡 1. خانة الأولوية
+  const priorityCell = document.createElement("td");
+  priorityCell.textContent = priority;
+  mainRow.appendChild(priorityCell);
+
+  // 🟡 2. رقم المحاضرة + اسم الأستاذ
+  [num, teacher].forEach(val => {
+    const td = document.createElement("td");
+    td.textContent = val;
+    mainRow.appendChild(td);
+  });
+
+  // 🟡 3. 19 خانة مهام (صف المهام الرئيسي فقط)
+  for (let i = 0; i < 19; i++) {
+    const td = document.createElement("td");
+    td.contentEditable = true;
+    td.style.direction = "rtl";
+    mainRow.appendChild(td);
+  }
+
+  // 🟡 4. الكلفة النهائية
+  const totalMain = document.createElement("td");
+  mainRow.appendChild(totalMain);
+
+  // 🟡 5. الحذف
+  const deleteCell = document.createElement("td");
+  deleteCell.innerHTML =
+    "<span style='cursor:pointer;color:var(--danger);font-weight:bold;font-size:1.2rem;'>✖</span>";
+  deleteCell.onclick = () => {
+    mainRow.remove();
+    costRow.remove();
+    calculateSummary();
+  };
+  mainRow.appendChild(deleteCell);
+
+  // 🟡 6. صف الكلف المحاسبية
+  for (let i = 0; i < 3; i++) costRow.appendChild(document.createElement("td")); // أولوية + رقم + أستاذ
+
+  for (let i = 0; i < 19; i++) {
+    const td = document.createElement("td");
+    td.contentEditable = true;
+    td.style.direction = "rtl";
+    td.classList.add("cost-input"); // ⭐️ ميزة خاصة حتى نحسب بس هاي الخلايا
+    td.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault(); // حتى ما ينزل سطر جديد
+        updateRowTotal(costRow, totalMain);
+      }
+    });
+    costRow.appendChild(td);
+  }
+
+  const totalCell = document.createElement("td"); // الكلفة
+  totalCell.classList.add("total-cell");
+  costRow.appendChild(totalCell);
+
+  costRow.appendChild(document.createElement("td")); // الحذف (فارغ)
+
+  tableBody.appendChild(mainRow);
+  tableBody.appendChild(costRow);
+}
+
+
+
+ const deleteCell = document.createElement("td");
+      deleteCell.innerHTML = "<span style='cursor:pointer;color:#dc3545;font-weight:bold;font-size:1.2rem;'>✖</span>";
+      deleteCell.onclick = () => {
+        mainRow.remove();
+        costRow.remove();
+        calculateSummary();
+      };
+function updateRowTotal(costRow){
+  let sum = 0;
+
+  // نجمع فقط خلايا الكلفة
+  costRow.querySelectorAll("td.cost-input").forEach(c => {
+    const v = parseFloat(c.textContent.replace(/,/g, "").trim());
+    if (!isNaN(v)) sum += v;
+  });
+
+  const totalCell = costRow.querySelector(".total-cell");
+  totalCell.textContent = sum ? sum.toLocaleString() : "";
+
+  calculateSummary();
+}
+
+
+
+    function calculateSummary(){
+      let total=0;
+      document.querySelectorAll(".total-cell").forEach(c=>{const v=parseFloat(c.textContent.replace(/,/g,""));if(!isNaN(v)) total+=v;});
+      document.getElementById("totalCost").textContent=total.toLocaleString();
+    }
+
+function sortTable(){
+  const body=document.getElementById("tableBody");
+  const pairs=[];
+  for(let i=0;i<body.children.length;i+=2){
+    const main=body.children[i];
+    const cost=body.children[i+1];
+    const priority=main.children[0].textContent==="✅"?0:1;
+    const date=new Date(main.children[12].textContent||"2100-01-01").getTime(); // عمود التاريخ
+    pairs.push({main,cost,priority,date});
+  }
+  pairs.sort((a,b)=>a.priority-b.priority||a.date-b.date);
+  pairs.forEach(p=>{body.appendChild(p.main);body.appendChild(p.cost);});
+}
+
+        document.addEventListener("contextmenu", (e) => {
+      if (!e.target.isContentEditable) return;
+      e.preventDefault();
+      const cell = e.target;
+      const colors = ["transparent", "#fff9c4", "#ffe082", "#c8e6c9", "#212121"];
+      const names = ["شفاف", "أصفر فاتح", "أصفر غامق", "أخضر", "أسود"];
+
+      const menu = document.createElement("div");
+      menu.style.position = "fixed";
+      menu.style.top = `${e.clientY}px`;
+      menu.style.left = `${e.clientX}px`;
+      menu.style.background = "#fff";
+      menu.style.border = "1px solid #ccc";
+      menu.style.borderRadius = "8px";
+      menu.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+      menu.style.zIndex = 1000;
+      menu.style.padding = "6px 0";
+      menu.style.minWidth = "140px";
+
+      colors.forEach((color, i) => {
+        const option = document.createElement("div");
+        option.textContent = names[i];
+        option.style.padding = "10px 16px";
+        option.style.cursor = "pointer";
+        option.style.backgroundColor = color === "transparent" ? "#fff" : color;
+        option.style.color = color === "#212121" ? "#fff" : "#000";
+        option.addEventListener("click", () => {
+          cell.style.backgroundColor = color;
+          document.body.removeChild(menu);
+        });
+        menu.appendChild(option);
+      });
+
+      document.querySelectorAll("body > .context-menu-color").forEach(m => m.remove());
+      menu.classList.add("context-menu-color");
+      document.body.appendChild(menu);
+
+      document.addEventListener("click", () => {
+        if (document.body.contains(menu)) document.body.removeChild(menu);
+      }, { once: true });
+    });
+  </script>
+</body>
+</html>
