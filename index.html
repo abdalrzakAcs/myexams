@@ -196,8 +196,7 @@ function checkLogin () {
       const totalCell = document.createElement('td'); totalCell.classList.add('total-cell'); costRow.appendChild(totalCell);
       costRow.appendChild(document.createElement('td')); // عمود الحذف الفارغ
 
-      tableBody.appendChild(mainRow); tableBody.appendChild(costRow);
-
+body.appendChild(mainRow); body.appendChild(costRow);
       // حفظ بالمخدّم
       if (!skipSave) saveRowToAppwrite(mainRow, costRow);
 
@@ -292,7 +291,7 @@ function checkLogin () {
 
     /**********  ترتيب الصفوف  **********/
     function sortTable() {
-      const body = tableBody;
+      const body = tableBodyEl;
       const pairs = [];
       for (let i = 0; i < body.children.length; i += 2) {
         const main = body.children[i], cost = body.children[i + 1];
