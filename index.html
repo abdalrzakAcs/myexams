@@ -103,12 +103,20 @@
     const databaseId   = '68136c4cee33221deb0f';
     const collectionId = 'tasks';
 
-account.createAnonymousSession()
-   .then(() => {
-    console.log('✅ Anonymous session ready');
-    window.sessionReady = true;          // ⭐️ ضروري
- })
-   .catch(console.error);
+account.get()
+  .then(() => {
+    console.log("✅ Session already active");
+    window.sessionReady = true;
+  })
+  .catch(() => {
+    account.createAnonymousSession()
+      .then(() => {
+        console.log("✅ Anonymous session created");
+        window.sessionReady = true;
+      })
+      .catch(console.error);
+  });
+
 
     /**********  متغيرات الدخول  **********/
     const PASSWORDS = { admin: 'admin123', accountant: 'account123' };
