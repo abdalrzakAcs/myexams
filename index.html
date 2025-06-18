@@ -283,9 +283,74 @@ body.appendChild(mainRow); body.appendChild(costRow);
           });
           costRow.querySelector('.total-cell').textContent = doc.totalCost || '';
         });
+        if (!window.realtimeStarted) {
+  initRealtime();
+  window.realtimeStarted = true;
+}
+
         calculateSummary();
       }).catch(console.error);
     }
+function initRealtime() {
+  // حدث واحد يشمل كل العمليات على وثائق الـ collection
+  const channel = `databases.${databaseId}.collections.${collectionId}.documents`;
+
+  client.subscribe(channel, response => {
+    const { event, payload } = response;
+    const doc = payload ?? {};
+
+    if (event.endsWith('.create')) {
+      // إذا السطر موجود مسبقاً تجاهله
+      if (document.querySelector(`[data-doc-id="${doc.$id}"]`)) return;
+
+      addLectureRow(doc.priority, doc.lectureNumber, doc.teacherName,
+                    doc.recordDate, true);                        // ← skipSave=true
+      const rows = document.querySelectorAll('#tableBody tr');
+      const costRow = rows[rows.length - 1];
+      const mainRow = rows[rows.length - 2];
+      mainRow.dataset.docId = costRow.dataset.docId = doc.$id;
+
+      // تعبئة محتوى الخلايا
+      mainRow.querySelectorAll('td').forEach((td,i)=>{
+        if(i>=3 && i<mainRow.children.length-2) td.textContent = doc.mainCells[i-3] || '';
+      });
+      costRow.querySelectorAll('td.cost-input').forEach((td,i)=>{
+        td.textContent = doc.costs[i] || '';
+      });
+      costRow.querySelector('.total-cell').textContent = doc.totalCost || '';
+      calculateSummary();
+    }
+
+    else if (event.endsWith('.update')) {
+      const mainRow = document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
+      if (!mainRow) return;
+      const costRow = mainRow.nextElementSibling;
+
+      mainRow.querySelectorAll('td').forEach((td,i)=>{
+        if(i===0)  td.textContent = doc.priority;
+        if(i===1)  td.textContent = doc.lectureNumber;
+        if(i===2)  td.textContent = doc.teacherName;
+        if(i>=3 && i<mainRow.children.length-2) td.textContent = doc.mainCells[i-3] || '';
+        if(i===13) td.textContent = doc.recordDate;
+      });
+
+      costRow.querySelectorAll('td.cost-input').forEach((td,i)=>{
+        td.textContent = doc.costs[i] || '';
+      });
+      costRow.querySelector('.total-cell').textContent = doc.totalCost || '';
+      calculateSummary();
+    }
+
+    else if (event.endsWith('.delete')) {
+      const mainRow = document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
+      if (mainRow) {
+        const costRow = mainRow.nextElementSibling;
+        mainRow.remove(); if (costRow) costRow.remove();
+        calculateSummary();
+      }
+    }
+  });
+}
 
     /**********  الإجمالي الكلّي  **********/
     function calculateSummary() {
