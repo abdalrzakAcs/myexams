@@ -307,22 +307,48 @@
     }
 
     /* ========== Realtime ========== */
-    function initRealtime(){
-      const channel=`databases.${databaseId}.collections.${collectionId}.documents`;
-      client.subscribe(channel, (response) => {
-  // نحصل على الحدث والبيانات مع التحقّق من وجودهما
-  const event = response?.event || response?.events?.[0] || "";
-  const doc   = response?.payload || {};
+function initRealtime(){
+  const channel=`databases.${databaseId}.collections.${collectionId}.documents`;
+  client.subscribe(channel, (response) => {
+    const event = response?.event || response?.events?.[0] || "";
+    const doc   = response?.payload || {};
 
-  /* ـــــــــــــ أحداث WebSocket ـــــــــــــ */
-  if (event && event.endsWith(".create")) {
-    // ... (شيفرة التعامل مع الإنشاء كما هي)
-  } else if (event && event.endsWith(".update")) {
-    // ... (شيفرة الـ update كما هي)
-  } else if (event && event.endsWith(".delete")) {
-    // ... (شيفرة الـ delete كما هي)
-  }
-});
+    if (event && event.endsWith(".create")) {
+      // لم تتم إضافة منطق create بعد - يمكنك إضافته هنا لاحقاً
+    } else if (event && event.endsWith(".update")) {
+      const main=document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
+      if(!main) return;
+      const cost=main.nextElementSibling;
+
+      main.querySelectorAll('td').forEach((td,i)=>{
+        if(i===0) td.textContent=doc.priority;
+        else if(i===1) td.textContent=doc.lectureNumber;
+        else if(i===2) td.textContent=doc.teacherName;
+        else if(i>=3 && i<main.children.length-2) td.textContent=doc.mainCells[i-3]||'';
+        else if(i===13) td.textContent=doc.recordDate;
+      });
+
+      doc.cellColors?.forEach((clr,i)=>{
+        const td=main.children[3+i]; if(td) td.style.backgroundColor=clr;
+      });
+
+      cost.querySelectorAll('td.cost-input').forEach((td,i)=>{
+        td.textContent=doc.costs[i]||'';
+      });
+      cost.querySelector('.total-cell').textContent=doc.totalCost||'';
+      calculateSummary();
+    } else if (event && event.endsWith(".delete")) {
+      const main=document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
+      if(main){
+        const cost=main.nextElementSibling;
+        main.remove();
+        if(cost) cost.remove();
+        calculateSummary();
+      }
+    }
+  });
+}
+
 
           doc.cellColors?.forEach((clr,i)=>{
             const td=main.children[3+i]; if(td) td.style.backgroundColor=clr;
