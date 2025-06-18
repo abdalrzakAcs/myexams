@@ -146,7 +146,7 @@
       });
 
     /* ---------- متغيرات الدخول ---------- */
-    const PASSWORDS = { admin:'admin12345', accountant:'account123' };
+    const PASSWORDS = { admin:'admin', accountant:'account123' };
     let   currentRole = 'guest';
 
     /* ---------- دوال مساعدة عناصر ---------- */
@@ -427,9 +427,11 @@
           menu.appendChild(o);
         });
       }
-      document.body.appendChild(menu);
-      document.addEventListener('click',()=>{if(menu.parentNode)menu.remove()},{once:true});
-      e.preventDefault();
+document.body.appendChild(menu);
+document.addEventListener('click', () => {
+  if (menu.parentNode) menu.remove();
+}, { once: true });
+e.preventDefault();
     });
   </script>
 </body>
