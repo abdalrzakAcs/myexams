@@ -204,7 +204,7 @@ function addLectureRow(priority,num,teacher,dateTime,room,skipSave=false){
   });
 
   /* 19 خانة مهام */
-  for(let i=0;i<19;i++){
+  for(let i=0;i<10;i++){
     const td=document.createElement('td');
     td.contentEditable=true;td.style.direction='rtl';
     main.appendChild(td);
@@ -216,7 +216,7 @@ function addLectureRow(priority,num,teacher,dateTime,room,skipSave=false){
 
   /* المصور + باقي الأعمدة */
   main.appendChild(document.createElement('td')); // المصور
-  for(let i=0;i<5;i++) main.appendChild(document.createElement('td'));    // بقية الأعمدة لغاية تسويق
+for(let i=0;i<7;i++) main.appendChild(document.createElement('td'));
 
   /* خانة كلفة + حذف */
   main.appendChild(document.createElement('td')); // الكلفة
@@ -227,12 +227,14 @@ del.onclick = () => deleteRow(main, cost);   // يستدعي الدالة الت
 
   /* صف الكلف */
   for(let i=0;i<3;i++) cost.appendChild(document.createElement('td'));
-  for(let i=0;i<19;i++){
+for(let i=0;i<10;i++){
     const td=document.createElement('td');
     td.contentEditable=true;td.style.direction='rtl';td.classList.add('cost-input');
     td.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();updateRowTotal(cost);} });
     cost.appendChild(td);
   }
+  for(let i=0;i<10;i++) cost.appendChild(document.createElement('td'));
+
   const totalCell=document.createElement('td');totalCell.classList.add('total-cell');cost.appendChild(totalCell);
   cost.appendChild(document.createElement('td'));
 
@@ -264,8 +266,8 @@ function saveRowToAppwrite(main,cost,dateTime,room){
     teacherName:m[2].textContent,
     recordDate :dateTime,
     recordRoom :room,
-    mainCells  :[...m].slice(3,m.length-2).map(td=>td.textContent),
-    cellColors :[...m].slice(3,m.length-2).map(td=>td.style.backgroundColor||''),
+   mainCells  :[...m].slice(3,13).map(td=>td.textContent),
+    cellColors :[...m].slice(3,13).map(td=>td.style.backgroundColor||''),
     costs      :[...c].map(td=>td.textContent),
     totalCost  :cost.querySelector('.total-cell').textContent
   };
@@ -286,8 +288,9 @@ function syncRowUpdate(main,cost){
     teacherName:m[2].textContent,
     recordDate :m[13].textContent,
     recordRoom :m[14].textContent,
-    mainCells  :[...m].slice(3,m.length-2).map(td=>td.textContent),
-    cellColors :[...m].slice(3,m.length-2).map(td=>td.style.backgroundColor||''),
+    mainCells  : [...m].slice(3, 13).map(td => td.textContent),
+cellColors : [...m].slice(3, 13).map(td => td.style.backgroundColor || ''),
+
     costs      :[...c].map(td=>td.textContent),
     totalCost  :cost.querySelector('.total-cell').textContent
   };
@@ -331,11 +334,13 @@ function initRealtime(){
     const event=res.event||res.events?.[0]||"";
     const doc  =res.payload||{};
 
-    if(event.endsWith(".create")){
-      addLectureRow(doc.priority,doc.lectureNumber,doc.teacherName,
-                    doc.recordDate,doc.recordRoom,true);
-      sortTable();
-    }
+if(event.endsWith(".create")){
+  if (document.querySelector(`tr[data-doc-id="${doc.$id}"]`)) return; // لا تضيف إذا موجود
+  addLectureRow(doc.priority, doc.lectureNumber, doc.teacherName,
+                doc.recordDate, doc.recordRoom, true);
+  sortTable();
+}
+
     else if(event.endsWith(".update")){
       const main=document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
       if(!main) return;
