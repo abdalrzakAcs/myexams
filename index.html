@@ -308,13 +308,13 @@
 
     /* ========== Realtime ========== */
 function initRealtime(){
-  const channel=`databases.${databaseId}.collections.${collectionId}.documents`;
+  const channel = `databases.${databaseId}.collections.${collectionId}.documents`;
   client.subscribe(channel, (response) => {
     const event = response?.event || response?.events?.[0] || "";
     const doc   = response?.payload || {};
 
     if (event && event.endsWith(".create")) {
-      // لم تتم إضافة منطق create بعد - يمكنك إضافته هنا لاحقاً
+      // ممكن تضيف منطق الإنشاء هنا لاحقاً
     } else if (event && event.endsWith(".update")) {
       const main=document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
       if(!main) return;
@@ -329,7 +329,8 @@ function initRealtime(){
       });
 
       doc.cellColors?.forEach((clr,i)=>{
-        const td=main.children[3+i]; if(td) td.style.backgroundColor=clr;
+        const td=main.children[3+i];
+        if(td) td.style.backgroundColor=clr;
       });
 
       cost.querySelectorAll('td.cost-input').forEach((td,i)=>{
@@ -347,6 +348,8 @@ function initRealtime(){
       }
     }
   });
+}
+
 
 
 
