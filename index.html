@@ -177,7 +177,22 @@ addBtn.addEventListener('click',()=>{
   );
   taskForm.reset(); sortTable();
 });
-
+function deleteRow(main, cost){
+  const id = main.dataset.docId;
+  if (id){
+    databases.deleteDocument(databaseId, collectionId, id)
+      .then(() => {
+        main.remove();
+        cost.remove();
+        calculateSummary();
+      })
+      .catch(console.error);
+  } else {
+    main.remove();
+    cost.remove();
+    calculateSummary();
+  }
+}
 function addLectureRow(priority,num,teacher,dateTime,room,skipSave=false){
   const body = tableBodyEl;
   const main = document.createElement('tr');
@@ -207,7 +222,7 @@ function addLectureRow(priority,num,teacher,dateTime,room,skipSave=false){
   main.appendChild(document.createElement('td')); // الكلفة
   const del=document.createElement('td');
   del.innerHTML='<span style="cursor:pointer;color:var(--danger);font-weight:bold;font-size:1.2rem">✖</span>';
-  del.onclick=()=>{main.remove();cost.remove();calculateSummary();};
+del.onclick = () => deleteRow(main, cost);   // يستدعي الدالة التي تحذف من Appwrite
   main.appendChild(del);
 
   /* صف الكلف */
@@ -362,7 +377,8 @@ function sortTable(){
   for(let i=0;i<body.children.length;i+=2){
     const main=body.children[i],cost=body.children[i+1];
     const prio=main.children[0].textContent==='✅'?0:1;
-    const date=new Date(main.children[13].textContent||'2100-01-01T00:00').getTime();
+const dateText = main.children[13]?.textContent?.trim() || '2100-01-01T00:00';
+const date = new Date(dateText).getTime();
     pairs.push({main,cost,prio,date});
   }
   pairs.sort((a,b)=>a.prio-b.prio||a.date-b.date);
