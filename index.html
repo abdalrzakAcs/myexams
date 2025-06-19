@@ -131,20 +131,20 @@ account.get()
   });
 
 /* ---------- عناصر DOM ---------- */
-const adminPass   = document.getElementById('adminPass');
-const addBtn      = document.getElementById('addBtn');
+const adminPass      = document.getElementById('adminPass');
+const addBtn         = document.getElementById('addBtn');
 
-const loginBox    = document.getElementById('loginBox');
-const taskForm    = document.getElementById('taskForm');
-const summaryBox  = document.getElementById('summaryBox');
-const tableBodyEl = document.getElementById('tableBody');
-const totalCost   = document.getElementById('totalCost');
+const loginBox       = document.getElementById('loginBox');
+const taskForm       = document.getElementById('taskForm');
+const summaryBox     = document.getElementById('summaryBox');
+const tableBodyEl    = document.getElementById('tableBody');
+const totalCost      = document.getElementById('totalCost');
 
-const priorityFlag  = document.getElementById('priorityFlag');
-const sessionNumber = document.getElementById('sessionNumber');
-const teacherName   = document.getElementById('teacherName');
-const recordDateTime= document.getElementById('recordDateTime');
-const recordRoom    = document.getElementById('recordRoom');
+const priorityFlag   = document.getElementById('priorityFlag');
+const sessionNumber  = document.getElementById('sessionNumber');
+const teacherName    = document.getElementById('teacherName');
+const recordDateTime = document.getElementById('recordDateTime');
+const recordRoom     = document.getElementById('recordRoom');
 
 /* ---------- صلاحيات ---------- */
 const PASSWORDS  = { admin:'Admin12', accountant:'account123' };
@@ -153,7 +153,7 @@ let   currentRole= 'guest';
 /* ========== تسجيل الدخول ========== */
 function checkLogin(){
   const pass = adminPass.value.trim();
-  if(pass===PASSWORDS.admin)      currentRole='admin';
+  if(pass===PASSWORDS.admin)           currentRole='admin';
   else if(pass===PASSWORDS.accountant) currentRole='accountant';
   else return alert('كلمة المرور غير صحيحة');
 
@@ -162,26 +162,64 @@ function checkLogin(){
   summaryBox.style.display= 'block';
 
   if(window.sessionReady) loadFromAppwrite(); else {
-    const int=setInterval(()=>{if(window.sessionReady){loadFromAppwrite();clearInterval(int);}},200);
+    const int=setInterval(()=>{
+      if(window.sessionReady){loadFromAppwrite();clearInterval(int);}
+    },200);
   }
 }
 
 /* ========== إضافة صف جديد ========== */
-addBtn.addEventListener('click',()=>{
-  const p = priorityFlag.checked ? '✅' : '❌';
-  addLectureRow(p,
-    sessionNumber.value.trim(),
-    teacherName.value.trim(),
-    recordDateTime.value,
-    recordRoom.value
-  );
-  taskForm.reset(); sortTable();
+/* 👈 هذا هو الجزء المعدَّل بالكامل */
+addBtn.addEventListener('click', async ()=>{
+  const priority     = priorityFlag.checked ? '✅' : '❌';
+  const lectureNum   = sessionNumber.value.trim();
+  const teacher      = teacherName.value.trim();
+  const dateTime     = recordDateTime.value;
+  const room         = recordRoom.value;
+
+  if(!lectureNum || !teacher || !dateTime) return alert('الرجاء ملء جميع الحقول');
+
+  /* 1️⃣ نحضّر الـ payload */
+  const emptyCells = Array(10).fill('');
+  const payload = {
+    priority,
+    lectureNumber: lectureNum,
+    teacherName:   teacher,
+    recordDate:    dateTime,
+    recordRoom:    room,
+    mainCells:   emptyCells,
+    cellColors:  emptyCells,
+    costs:       emptyCells,
+    totalCost:   ''
+  };
+
+  try{
+    /* 2️⃣ إنشاء المستند أولاً */
+    const doc = await databases.createDocument(databaseId, collectionId, ID.unique(), payload);
+
+    /* 3️⃣ وبعد نجاح الإنشاء منضيف الصفّ (skipSave=true) */
+    addLectureRow(priority, lectureNum, teacher, dateTime, room, true);
+
+    /* 4️⃣ ربط الـ docId مباشرة لتفادي تكرار Realtime */
+    const rows = document.querySelectorAll('#tableBody tr');
+    const cost = rows[rows.length-1];
+    const main = rows[rows.length-2];
+    main.dataset.docId = cost.dataset.docId = doc.$id;
+
+    taskForm.reset();
+    sortTable();
+  }catch(err){
+    console.error(err);
+    alert('حصل خطأ أثناء الحفظ!');
+  }
 });
+
+/* ---------- حذف صف ---------- */
 function deleteRow(main, cost){
   const id = main.dataset.docId;
   if (id){
     databases.deleteDocument(databaseId, collectionId, id)
-      .then(() => {
+      .then(()=>{
         main.remove();
         cost.remove();
         calculateSummary();
@@ -193,6 +231,8 @@ function deleteRow(main, cost){
     calculateSummary();
   }
 }
+
+/* ---------- إنشاء صفّي البيانات والكلفة ---------- */
 function addLectureRow(priority,num,teacher,dateTime,room,skipSave=false){
   const body = tableBodyEl;
   const main = document.createElement('tr');
@@ -203,7 +243,7 @@ function addLectureRow(priority,num,teacher,dateTime,room,skipSave=false){
     const td=document.createElement('td');td.textContent=v;main.appendChild(td);
   });
 
-  /* 19 خانة مهام */
+  /* ١٠ خانات مهام قابلة للتحرير */
   for(let i=0;i<10;i++){
     const td=document.createElement('td');
     td.contentEditable=true;td.style.direction='rtl';
@@ -214,23 +254,25 @@ function addLectureRow(priority,num,teacher,dateTime,room,skipSave=false){
   const dateTd=document.createElement('td'); dateTd.textContent=dateTime; main.appendChild(dateTd);
   const roomTd=document.createElement('td'); roomTd.textContent=room;     main.appendChild(roomTd);
 
-  /* المصور + باقي الأعمدة */
-  main.appendChild(document.createElement('td')); // المصور
-for(let i=0;i<7;i++) main.appendChild(document.createElement('td'));
+  /* المصور + بقية الأعمدة */
+  main.appendChild(document.createElement('td'));
+  for(let i=0;i<7;i++) main.appendChild(document.createElement('td'));
 
-  /* خانة كلفة + حذف */
-  main.appendChild(document.createElement('td')); // الكلفة
+  /* الكلفة + حذف */
+  main.appendChild(document.createElement('td'));
   const del=document.createElement('td');
   del.innerHTML='<span style="cursor:pointer;color:var(--danger);font-weight:bold;font-size:1.2rem">✖</span>';
-del.onclick = () => deleteRow(main, cost);   // يستدعي الدالة التي تحذف من Appwrite
+  del.onclick = () => deleteRow(main, cost);
   main.appendChild(del);
 
   /* صف الكلف */
   for(let i=0;i<3;i++) cost.appendChild(document.createElement('td'));
-for(let i=0;i<10;i++){
+  for(let i=0;i<10;i++){
     const td=document.createElement('td');
     td.contentEditable=true;td.style.direction='rtl';td.classList.add('cost-input');
-    td.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();updateRowTotal(cost);} });
+    td.addEventListener('keydown',e=>{
+      if(e.key==='Enter'){e.preventDefault();updateRowTotal(cost);}
+    });
     cost.appendChild(td);
   }
   for(let i=0;i<10;i++) cost.appendChild(document.createElement('td'));
@@ -253,11 +295,11 @@ function updateRowTotal(costRow){
     const v=parseFloat(c.textContent.replace(/,/g,'').trim());
     if(!isNaN(v)) sum+=v;
   });
-  costRow.querySelector('.total-cell').textContent=sum?sum.toLocaleString():'';
+  costRow.querySelector('.total-cell').textContent=sum?sum.toLocaleString():'';  
   calculateSummary();
 }
 
-/* ---------- حفظ صف ---------- */
+/* ---------- حفظ صفّ (يُستخدم فقط لو أضفت صفّ محلي بدون createDocument) ---------- */
 function saveRowToAppwrite(main,cost,dateTime,room){
   const m=main.querySelectorAll('td'); const c=cost.querySelectorAll('td.cost-input');
   const payload={
@@ -266,7 +308,7 @@ function saveRowToAppwrite(main,cost,dateTime,room){
     teacherName:m[2].textContent,
     recordDate :dateTime,
     recordRoom :room,
-   mainCells  :[...m].slice(3,13).map(td=>td.textContent),
+    mainCells  :[...m].slice(3,13).map(td=>td.textContent),
     cellColors :[...m].slice(3,13).map(td=>td.style.backgroundColor||''),
     costs      :[...c].map(td=>td.textContent),
     totalCost  :cost.querySelector('.total-cell').textContent
@@ -283,19 +325,18 @@ function syncRowUpdate(main,cost){
 
   const m=main.querySelectorAll('td'); const c=cost.querySelectorAll('td.cost-input');
   const data={
-    priority   :m[0].textContent,
-    lectureNumber:m[1].textContent,
-    teacherName:m[2].textContent,
-    recordDate :m[13].textContent,
-    recordRoom :m[14].textContent,
-    mainCells  : [...m].slice(3, 13).map(td => td.textContent),
-cellColors : [...m].slice(3, 13).map(td => td.style.backgroundColor || ''),
-
-    costs      :[...c].map(td=>td.textContent),
-    totalCost  :cost.querySelector('.total-cell').textContent
+    priority      :m[0].textContent,
+    lectureNumber :m[1].textContent,
+    teacherName   :m[2].textContent,
+    recordDate    :m[13].textContent,
+    recordRoom    :m[14].textContent,
+    mainCells     :[...m].slice(3,13).map(td=>td.textContent),
+    cellColors    :[...m].slice(3,13).map(td=>td.style.backgroundColor||''),
+    costs         :[...c].map(td=>td.textContent),
+    totalCost     :cost.querySelector('.total-cell').textContent
   };
   databases.updateDocument(databaseId,collectionId,id,data).catch(console.error);
-  sortTable(); // 🔄 إعادة ترتيب بعد التعديل
+  sortTable();
 }
 
 /* ========== تحميل البيانات ========== */
@@ -334,13 +375,12 @@ function initRealtime(){
     const event=res.event||res.events?.[0]||"";
     const doc  =res.payload||{};
 
-if(event.endsWith(".create")){
-  if (document.querySelector(`tr[data-doc-id="${doc.$id}"]`)) return; // لا تضيف إذا موجود
-  addLectureRow(doc.priority, doc.lectureNumber, doc.teacherName,
-                doc.recordDate, doc.recordRoom, true);
-  sortTable();
-}
-
+    if(event.endsWith(".create")){
+      if(document.querySelector(`tr[data-doc-id="${doc.$id}"]`)) return;
+      addLectureRow(doc.priority,doc.lectureNumber,doc.teacherName,
+                    doc.recordDate,doc.recordRoom,true);
+      sortTable();
+    }
     else if(event.endsWith(".update")){
       const main=document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
       if(!main) return;
@@ -382,8 +422,8 @@ function sortTable(){
   for(let i=0;i<body.children.length;i+=2){
     const main=body.children[i],cost=body.children[i+1];
     const prio=main.children[0].textContent==='✅'?0:1;
-const dateText = main.children[13]?.textContent?.trim() || '2100-01-01T00:00';
-const date = new Date(dateText).getTime();
+    const dateText = main.children[13]?.textContent?.trim() || '2100-01-01T00:00';
+    const date = new Date(dateText).getTime();
     pairs.push({main,cost,prio,date});
   }
   pairs.sort((a,b)=>a.prio-b.prio||a.date-b.date);
