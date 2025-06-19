@@ -151,9 +151,10 @@ const PASSWORDS  = { admin:'Admin12', accountant:'account123' };
 let   currentRole= 'guest';
 
 /* ========== تسجيل الدخول ========== */
+/* ========== تسجيل الدخول ========== */
 function checkLogin(){
   const pass = adminPass.value.trim();
-  if(pass===PASSWORDS.admin)           currentRole='admin';
+  if(pass===PASSWORDS.admin) currentRole='admin';
   else if(pass===PASSWORDS.accountant) currentRole='accountant';
   else return alert('كلمة المرور غير صحيحة');
 
@@ -166,7 +167,13 @@ function checkLogin(){
       if(window.sessionReady){loadFromAppwrite();clearInterval(int);}
     },200);
   }
+
+  // 👈👈 هنا أضف كود الـ Heartbeat 👈👈
+  setInterval(() => {
+    databases.listDocuments(databaseId, collectionId, [], 1, 0).catch(() => {});
+  }, 20000); // Heartbeat كل 20 ثانية (أكثر من كافي)
 }
+
 
 /* ========== إضافة صف جديد ========== */
 /* 👈 هذا هو الجزء المعدَّل بالكامل */
