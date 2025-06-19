@@ -351,46 +351,6 @@ function initRealtime(){
 }
 
 
-
-
-          doc.cellColors?.forEach((clr,i)=>{
-            const td=main.children[3+i]; if(td) td.style.backgroundColor=clr;
-          });
-          cost.querySelectorAll('td.cost-input').forEach((td,i)=>{td.textContent=doc.costs[i]||'';});
-          cost.querySelector('.total-cell').textContent=doc.totalCost||'';
-
-          [...main.querySelectorAll('td[contenteditable]'),
-           ...cost.querySelectorAll('td[contenteditable]')]
-           .forEach(td=>td.addEventListener('blur',()=>syncRowUpdate(main,cost)));
-          calculateSummary();
-        
-
-         if(event.endsWith('.update')){
-          const main=document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
-          if(!main) return; const cost=main.nextElementSibling;
-
-          main.querySelectorAll('td').forEach((td,i)=>{
-            if(i===0) td.textContent=doc.priority;
-            else if(i===1) td.textContent=doc.lectureNumber;
-            else if(i===2) td.textContent=doc.teacherName;
-            else if(i>=3 && i<main.children.length-2) td.textContent=doc.mainCells[i-3]||'';
-            else if(i===13) td.textContent=doc.recordDate;
-          });
-          doc.cellColors?.forEach((clr,i)=>{
-            const td=main.children[3+i]; if(td) td.style.backgroundColor=clr;
-          });
-          cost.querySelectorAll('td.cost-input').forEach((td,i)=>{td.textContent=doc.costs[i]||'';});
-          cost.querySelector('.total-cell').textContent=doc.totalCost||'';
-          calculateSummary();
-        }
-
-        else if(event.endsWith('.delete')){
-          const main=document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
-          if(main){const cost=main.nextElementSibling;main.remove();if(cost)cost.remove();calculateSummary();
-          }
-        }
-        
-      };
     
 
     /* ========== المجموع الكلي ========== */
@@ -416,54 +376,66 @@ function initRealtime(){
       pairs.forEach(p=>{body.appendChild(p.main);body.appendChild(p.cost);});
     }
 
-    /* ========== قائمة السياق للأسماء والألوان ========== */
-    document.addEventListener('contextmenu',e=>{
-      if(!e.target.isContentEditable) return;
-      const nameCols=[4,6,8,10,12,14,16,18,20];
-      const cell=e.target; const col=[...cell.parentNode.children].indexOf(cell);
+/* ========== قائمة السياق للأسماء والألوان ========== */
+document.addEventListener('contextmenu', e => {
+  if (!e.target.isContentEditable) return;
 
-      const menu=document.createElement('div');
-      menu.style=`position:fixed;top:${e.clientY}px;left:${e.clientX}px;background:#fff;
-        border:1px solid #ccc;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);
-        z-index:1000;padding:6px 0;min-width:160px`;
-      document.querySelectorAll('body>.context-menu-color').forEach(m=>m.remove());
-      menu.classList.add('context-menu-color');
+  const nameCols = [4, 6, 8, 10, 12, 14, 16, 18, 20];
+  const cell = e.target;
+  const col = [...cell.parentNode.children].indexOf(cell);
 
-      if(nameCols.includes(col)){
-        ["كنان الفران","أحمد زرنيخ","مايا وهابية","سنا زيادة","مصطفى حمزة","محمد فارس"]
-          .forEach(name=>{
-            const o=document.createElement('div');
-            o.textContent=name;o.style.padding='10px 16px';o.style.cursor='pointer';
-            o.onclick=()=>{cell.textContent=name;menu.remove();
-              const main=cell.closest('tbody').querySelector('tr[data-doc-id]');
-              const cost=main?.nextElementSibling;
-              if(main && cost) syncRowUpdate(main,cost);
-            };
-            menu.appendChild(o);
-          });
-      }else{
-        const colors=["transparent","#fff9c4","#ffe082","#c8e6c9","#212121"];
-        const names =["شفاف","أصفر فاتح","أصفر غامق","أخضر","أسود"];
-        colors.forEach((color,i)=>{
-          const o=document.createElement('div');
-          o.textContent=names[i];o.style.padding='10px 16px';o.style.cursor='pointer';
-          o.style.backgroundColor=color==='transparent'?'#fff':color;
-          o.style.color=color==='#212121'?'#fff':'#000';
-          o.onclick=()=>{
-            cell.style.backgroundColor=color;menu.remove();
-            const main=cell.closest('tbody').querySelector('tr[data-doc-id]');
-            const cost=main?.nextElementSibling;
-            if(main && cost) syncRowUpdate(main,cost);
-          };
-          menu.appendChild(o);
-        });
-      }
-document.body.appendChild(menu);
-document.addEventListener('click', () => {
-  if (menu.parentNode) menu.remove();
-}, { once: true });
-e.preventDefault();
+  const menu = document.createElement('div');
+  menu.style = `
+    position:fixed;top:${e.clientY}px;left:${e.clientX}px;background:#fff;
+    border:1px solid #ccc;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);
+    z-index:1000;padding:6px 0;min-width:160px`;
+  document.querySelectorAll('body>.context-menu-color').forEach(m => m.remove());
+  menu.classList.add('context-menu-color');
+
+  if (nameCols.includes(col)) {
+    ["كنان الفران", "أحمد زرنيخ", "مايا وهابية", "سنا زيادة", "مصطفى حمزة", "محمد فارس"]
+      .forEach(name => {
+        const o = document.createElement('div');
+        o.textContent = name;
+        o.style.padding = '10px 16px';
+        o.style.cursor = 'pointer';
+        o.onclick = () => {
+          cell.textContent = name;
+          menu.remove();
+          const main = cell.closest('tr[data-doc-id]'); // ✅ تم التعديل
+          const cost = main?.nextElementSibling;
+          if (main && cost) syncRowUpdate(main, cost);
+        };
+        menu.appendChild(o);
+      });
+  } else {
+    const colors = ["transparent", "#fff9c4", "#ffe082", "#c8e6c9", "#212121"];
+    const names = ["شفاف", "أصفر فاتح", "أصفر غامق", "أخضر", "أسود"];
+    colors.forEach((color, i) => {
+      const o = document.createElement('div');
+      o.textContent = names[i];
+      o.style.padding = '10px 16px';
+      o.style.cursor = 'pointer';
+      o.style.backgroundColor = color === 'transparent' ? '#fff' : color;
+      o.style.color = color === '#212121' ? '#fff' : '#000';
+      o.onclick = () => {
+        cell.style.backgroundColor = color;
+        menu.remove();
+        const main = cell.closest('tr[data-doc-id]'); // ✅ تم التعديل
+        const cost = main?.nextElementSibling;
+        if (main && cost) syncRowUpdate(main, cost);
+      };
+      menu.appendChild(o);
     });
+  }
+
+  document.body.appendChild(menu);
+  document.addEventListener('click', () => {
+    if (menu.parentNode) menu.remove();
+  }, { once: true });
+  e.preventDefault();
+});
+
   </script>
 </body>
 </html>
