@@ -171,7 +171,7 @@ function checkLogin(){
   // 👈👈 هنا أضف كود الـ Heartbeat 👈👈
   setInterval(() => {
     databases.listDocuments(databaseId, collectionId, [], 1, 0).catch(() => {});
-  }, 20000); // Heartbeat كل 20 ثانية (أكثر من كافي)
+  }, 10000); // Heartbeat كل 20 ثانية (أكثر من كافي)
 }
 
 
@@ -188,17 +188,18 @@ addBtn.addEventListener('click', async ()=>{
 
   /* 1️⃣ نحضّر الـ payload */
   const emptyCells = Array(10).fill('');
-  const payload = {
-    priority,
-    lectureNumber: lectureNum,
-    teacherName:   teacher,
-    recordDate:    dateTime,
-    recordRoom:    room,
-    mainCells:   emptyCells,
-    cellColors:  emptyCells,
-    costs:       emptyCells,
-    totalCost:   ''
-  };
+const payload = {
+  priority,
+  lectureNumber: lectureNum,
+  teacherName:   teacher,
+  recordDate:    new Date(dateTime).toISOString(),
+  recordRoom:    room,
+  mainCells:   emptyCells,
+  cellColors:  emptyCells,
+  costs:       emptyCells,
+  totalCost:   ''
+};
+
 
   try{
     /* 2️⃣ إنشاء المستند أولاً */
@@ -258,7 +259,15 @@ function addLectureRow(priority,num,teacher,dateTime,room,skipSave=false){
   }
 
   /* التاريخ + القاعة */
-  const dateTd=document.createElement('td'); dateTd.textContent=dateTime; main.appendChild(dateTd);
+const formattedDateTime = new Date(dateTime).toLocaleString('ar-SY', {
+  dateStyle: 'short',
+  timeStyle: 'short',
+  hour12: false,
+});
+
+const dateTd = document.createElement('td'); 
+dateTd.textContent = formattedDateTime; 
+main.appendChild(dateTd);
   const roomTd=document.createElement('td'); roomTd.textContent=room;     main.appendChild(roomTd);
 
   /* المصور + بقية الأعمدة */
@@ -392,7 +401,14 @@ function initRealtime(){
       const main=document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
       if(!main) return;
       const cost=main.nextElementSibling;
-      main.children[13].textContent=doc.recordDate;
+      const formattedDateTime = new Date(doc.recordDate).toLocaleString('ar-SY', {
+  dateStyle: 'short',
+  timeStyle: 'short',
+  hour12: false,
+});
+
+main.children[13].textContent = formattedDateTime;
+
       main.children[14].textContent=doc.recordRoom;
       doc.mainCells.forEach((v,i)=>{main.children[3+i].textContent=v;});
       doc.cellColors?.forEach((clr,i)=>{
