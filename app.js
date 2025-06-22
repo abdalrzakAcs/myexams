@@ -409,74 +409,78 @@ function applyPermissionsToRow(main, cost) {
   const last = main.children[cells.length-1];
   last.classList.toggle('hidden', currentRole !== 'admin');
 }
-/*----------------------------------------------------
- |  قوائم السياق: أسماء الموظفين أو ألوان الحالة
- *---------------------------------------------------*/
-
-// أعمدة الحالة (تنسيق، رفع، إدخال ملف …) ثم أعمدة الأسماء التي تليها مباشرة
-const taskCols = [3,5,7,9,13,16,18];          // خلايا الحالة
-const nameCols = taskCols.map(i => i + 1);     // خلايا أسماء الموظفين
-
-// أسماء موظفيك
-const names = ["محمد","أحمد","علي","نور","خالد","منى","هبة"];
-
-// خيارات الحالة (لون + نص)
-const statusOptions = [
-  { label: "لم يتم التدخل",                  color: ""        }, // شفاف
-  { label: "يتم العمل",                      color: "#fff6a3" }, // أصفر فاتح
-  { label: "تم العمل والتدقيق ولم يُسلَّم",  color: "#ffd86a" }, // أصفر غامق
-  { label: "منجز",                           color: "#b5f8b1" }  // أخضر
-];
-
-// إغلاق أي قائمة مفتوحة
-function closeMenu(menu) {
-  if (menu && menu.parentNode) menu.parentNode.removeChild(menu);
-}
-
-// بناء عنصر القائمة
-function buildMenu(items, clickHandler, x, y) {
-  const menu = document.createElement("div");
-  menu.style.cssText = `
-    position:fixed;left:${x}px;top:${y}px;z-index:9999;
-    background:#fff;border:1px solid #ccc;border-radius:8px;
-    box-shadow:0 4px 12px rgba(0,0,0,.15);padding:4px;`;
-  items.forEach(item=>{
-    const row = document.createElement("div");
-    row.style.cssText = "padding:6px 16px;cursor:pointer;white-space:nowrap;";
-    row.textContent = item.label || item;
-    if(item.color) row.style.backgroundColor = item.color;
-    row.onmouseover = ()=> row.style.outline = "1px solid #4285f4";
-    row.onmouseout  = ()=> row.style.outline = "none";
-    row.onclick = ()=> clickHandler(item);
-    menu.appendChild(row);
-  });
-  document.body.appendChild(menu);
-  document.addEventListener("click", ()=> closeMenu(menu), { once:true });
-  return menu;
-}
-
-// حدث كليك يمين
-document.addEventListener("contextmenu", e=>{
+// 🟢 تفعيل قائمة الألوان أو أسماء الموظفين بناءً على نوع الخلية
+document.addEventListener("contextmenu", (e) => {
   const td = e.target.closest("td");
-  if(!td || !td.isContentEditable) return;
-  e.preventDefault();
+  if (!td || !td.isContentEditable) return;
 
   const col = td.cellIndex;
+  const taskCols = [3, 5, 7, 9, 13, 16, 18];  // أعمدة "المهام" (لون + حالة)
+  const nameCols = taskCols.map((i) => i + 1); // الأعمدة التي بعدها = أسماء
 
-  // حالة أم اسم؟
-  if(taskCols.includes(col)) {
-    // قائمة الألوان + النص
-    buildMenu(statusOptions, opt=>{
+  // خيارات الألوان والحالات
+  const statusOptions = [
+    { label: "لم يتم التدخل", color: "" },
+    { label: "يتم العمل", color: "#fff6a3" },
+    { label: "تم العمل والتدقيق ولم يُسلَّم", color: "#ffd86a" },
+    { label: "منجز", color: "#b5f8b1" },
+  ];
+
+  // قائمة الموظفين
+  const employeeNames = ["محمد", "أحمد", "نور", "خالد", "منى", "هبة"];
+
+  // حذف قائمة قديمة
+  document.querySelectorAll(".custom-menu").forEach((el) => el.remove());
+
+  const menu = document.createElement("div");
+  menu.className = "custom-menu";
+  menu.style = `
+    position: fixed;
+    top: ${e.clientY}px;
+    left: ${e.clientX}px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.15);
+    z-index: 9999;
+    overflow: hidden;
+    font-family: "Cairo", sans-serif;
+  `;
+
+  const options = taskCols.includes(col)
+    ? statusOptions
+    : nameCols.includes(col)
+    ? employeeNames.map((name) => ({ label: name }))
+    : [];
+
+  if (!options.length) return;
+
+  options.forEach((opt) => {
+    const item = document.createElement("div");
+    item.textContent = opt.label;
+    item.style = `
+      padding: 10px 20px;
+      cursor: pointer;
+      white-space: nowrap;
+      background: ${opt.color || "white"};
+    `;
+    item.addEventListener("mouseover", () => (item.style.backgroundColor = "#eee"));
+    item.addEventListener("mouseout", () => (item.style.backgroundColor = opt.color || "white"));
+    item.addEventListener("click", () => {
       td.textContent = opt.label;
-      td.style.backgroundColor = opt.color;
-      td.dispatchEvent(new Event("blur"));   // مزامنة مع Appwrite
-    }, e.clientX, e.clientY);
-
-  } else if(nameCols.includes(col)) {
-    // قائمة الأسماء
-    buildMenu(names, name=>{
-      td.textContent = name;
+      if (opt.color !== undefined) td.style.backgroundColor = opt.color;
       td.dispatchEvent(new Event("blur"));
-    }, e.clientX, e.clientY);
-  }
+      menu.remove();
+    });
+    menu.appendChild(item);
+  });
+
+  document.body.appendChild(menu);
+  e.preventDefault();
 });
+
+// 🧼 إغلاق القائمة عند الضغط بالخارج
+document.addEventListener("click", () => {
+  document.querySelectorAll(".custom-menu").forEach((el) => el.remove());
+});
+
