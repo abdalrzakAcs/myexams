@@ -409,68 +409,74 @@ function applyPermissionsToRow(main, cost) {
   const last = main.children[cells.length-1];
   last.classList.toggle('hidden', currentRole !== 'admin');
 }
-// === قائمة أسماء الموظفين ===
-const names = ["محمد", "أحمد", "علي", "نور", "خالد", "منى", "هبة"];
-const colors = ["#fffa9e", "#caffbf", "#a0c4ff", "#ffc6c6"];
+/*----------------------------------------------------
+ |  قوائم السياق: أسماء الموظفين أو ألوان الحالة
+ *---------------------------------------------------*/
 
-document.addEventListener('contextmenu', function (e) {
-  const td = e.target.closest('td');
-  if (!td || !td.isContentEditable) return;
+// أعمدة الحالة (تنسيق، رفع، إدخال ملف …) ثم أعمدة الأسماء التي تليها مباشرة
+const taskCols = [3,5,7,9,13,16,18];          // خلايا الحالة
+const nameCols = taskCols.map(i => i + 1);     // خلايا أسماء الموظفين
 
+// أسماء موظفيك
+const names = ["محمد","أحمد","علي","نور","خالد","منى","هبة"];
+
+// خيارات الحالة (لون + نص)
+const statusOptions = [
+  { label: "لم يتم التدخل",                  color: ""        }, // شفاف
+  { label: "يتم العمل",                      color: "#fff6a3" }, // أصفر فاتح
+  { label: "تم العمل والتدقيق ولم يُسلَّم",  color: "#ffd86a" }, // أصفر غامق
+  { label: "منجز",                           color: "#b5f8b1" }  // أخضر
+];
+
+// إغلاق أي قائمة مفتوحة
+function closeMenu(menu) {
+  if (menu && menu.parentNode) menu.parentNode.removeChild(menu);
+}
+
+// بناء عنصر القائمة
+function buildMenu(items, clickHandler, x, y) {
+  const menu = document.createElement("div");
+  menu.style.cssText = `
+    position:fixed;left:${x}px;top:${y}px;z-index:9999;
+    background:#fff;border:1px solid #ccc;border-radius:8px;
+    box-shadow:0 4px 12px rgba(0,0,0,.15);padding:4px;`;
+  items.forEach(item=>{
+    const row = document.createElement("div");
+    row.style.cssText = "padding:6px 16px;cursor:pointer;white-space:nowrap;";
+    row.textContent = item.label || item;
+    if(item.color) row.style.backgroundColor = item.color;
+    row.onmouseover = ()=> row.style.outline = "1px solid #4285f4";
+    row.onmouseout  = ()=> row.style.outline = "none";
+    row.onclick = ()=> clickHandler(item);
+    menu.appendChild(row);
+  });
+  document.body.appendChild(menu);
+  document.addEventListener("click", ()=> closeMenu(menu), { once:true });
+  return menu;
+}
+
+// حدث كليك يمين
+document.addEventListener("contextmenu", e=>{
+  const td = e.target.closest("td");
+  if(!td || !td.isContentEditable) return;
   e.preventDefault();
 
-  const menu = document.createElement('div');
-  menu.style.position = 'absolute';
-  menu.style.top = `${e.pageY}px`;
-  menu.style.left = `${e.pageX}px`;
-  menu.style.zIndex = 9999;
-  menu.style.background = '#fff';
-  menu.style.border = '1px solid #ccc';
-  menu.style.padding = '5px 0';
-  menu.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-  menu.style.borderRadius = '8px';
+  const col = td.cellIndex;
 
-  names.forEach(name => {
-    const item = document.createElement('div');
-    item.textContent = name;
-    item.style.padding = '6px 18px';
-    item.style.cursor = 'pointer';
-    item.style.whiteSpace = 'nowrap';
-    item.addEventListener('click', () => {
+  // حالة أم اسم؟
+  if(taskCols.includes(col)) {
+    // قائمة الألوان + النص
+    buildMenu(statusOptions, opt=>{
+      td.textContent = opt.label;
+      td.style.backgroundColor = opt.color;
+      td.dispatchEvent(new Event("blur"));   // مزامنة مع Appwrite
+    }, e.clientX, e.clientY);
+
+  } else if(nameCols.includes(col)) {
+    // قائمة الأسماء
+    buildMenu(names, name=>{
       td.textContent = name;
-      document.body.removeChild(menu);
-      td.dispatchEvent(new Event('blur')); // حتى يتم الحفظ التلقائي
-    });
-    item.addEventListener('mouseover', () => item.style.background = '#f1f1f1');
-    item.addEventListener('mouseout', () => item.style.background = '');
-    menu.appendChild(item);
-  });
-
-  document.body.appendChild(menu);
-
-  const closeMenu = () => {
-    if (menu.parentNode) menu.parentNode.removeChild(menu);
-    document.removeEventListener('click', closeMenu);
-  };
-  setTimeout(() => document.addEventListener('click', closeMenu), 10);
+      td.dispatchEvent(new Event("blur"));
+    }, e.clientX, e.clientY);
+  }
 });
-
-// === التبديل بين الألوان بالنقر العادي
-document.addEventListener('click', function (e) {
-  const td = e.target.closest('td');
-  if (!td || !td.isContentEditable) return;
-
-  const current = td.style.backgroundColor;
-  const index = colors.findIndex(c => c === rgbToHex(current));
-  const nextColor = colors[(index + 1) % colors.length];
-  td.style.backgroundColor = nextColor;
-  td.dispatchEvent(new Event('blur')); // حتى يتم الحفظ التلقائي
-});
-
-function rgbToHex(rgb) {
-  if (!rgb) return '';
-  const result = /^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/.exec(rgb);
-  return result
-    ? "#" + result.slice(1).map(x => ("0" + parseInt(x).toString(16)).slice(-2)).join('')
-    : rgb;
-}
