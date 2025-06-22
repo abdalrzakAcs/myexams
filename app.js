@@ -441,7 +441,7 @@ const employeeNames = ["محمد","أحمد","علي","نور","خالد","من�
 const colorsCycle   = statusOptions.map(o => o.color); // لأزرار اليسار
 
 // ❹ أداة إنشاء قائمة عائمة
-function showMenu(items, x, y, onSelect){
+function showMenu(items, x, y, onSelect, td){
   const menu = document.createElement('div');
   menu.className = 'custom-menu';
   menu.style.cssText = `
@@ -459,24 +459,22 @@ function showMenu(items, x, y, onSelect){
     row.onmouseover = () => row.style.backgroundColor = '#eee';
     row.onmouseout  = () => row.style.backgroundColor = item.color || '#fff';
 row.onclick = () => {
-  // --- طبّق التعديل على الخلية ---
   const isStatus = !!item.color || typeof item.color === 'string';
-  td.textContent = item.label ?? item;           // نص الحالة أو اسم الموظف
+  td.textContent = item.label ?? item;
   if (isStatus) td.style.backgroundColor = item.color;
 
-  // --- حفــظ فوري في Appwrite ---
-  const mainRow = td.parentElement;              // صف البيانات الرئيسي
+  const mainRow = td.parentElement;
   const costRow = mainRow.nextElementSibling?.classList.contains('accounting-row')
                   ? mainRow.nextElementSibling
                   : null;
-  // استدعِ syncRowUpdate مباشرةً
+
   (typeof syncRowUpdate === 'function'
       ? syncRowUpdate
       : window.syncRowUpdate)(mainRow, costRow);
 
-  // أغلق القائمة
   menu.remove();
 };
+
     menu.appendChild(row);
   });
   document.body.appendChild(menu);
@@ -491,17 +489,17 @@ document.addEventListener('contextmenu', e=>{
   const col = td.cellIndex;
   if(nameCols.includes(col)){            // قائمة أسماء
     e.preventDefault();
-    showMenu(employeeNames, e.clientX, e.clientY, name=>{
-      td.textContent = name;
-      td.dispatchEvent(new Event('blur'));
-    });
+    showMenu(employeeNames, e.clientX, e.clientY, name => {
+  td.textContent = name;
+  td.dispatchEvent(new Event('blur'));
+}, td);
   }else if(statusCols.includes(col)){    // قائمة الحالة
     e.preventDefault();
-    showMenu(statusOptions, e.clientX, e.clientY, opt=>{
-      td.textContent = opt.label;
-      td.style.backgroundColor = opt.color;
-      td.dispatchEvent(new Event('blur'));
-    });
+   showMenu(statusOptions, e.clientX, e.clientY, opt => {
+  td.textContent = opt.label;
+  td.style.backgroundColor = opt.color;
+  td.dispatchEvent(new Event('blur'));
+}, td);
   }
 });
 
