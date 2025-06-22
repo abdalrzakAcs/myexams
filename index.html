@@ -142,369 +142,352 @@
   <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.0/dist/appwrite.min.js"></script>
 
   <!-- ====== سكربت التطبيق ====== -->
-  <script>
-    /* كل الكود ينتظر تحميل الـ DOM */
-    window.addEventListener('DOMContentLoaded', () => {
+ <script>
+/* ============ الإعداد العام ============ */
+const { Client, Databases, Account, ID } = Appwrite;
 
-      /* إعداد Appwrite */
-      const { Client, Databases, Account, ID } = Appwrite;
-      const client     = new Client().setEndpoint('https://fra.cloud.appwrite.io/v1')
-                                     .setProject('66cf3db2002471686c6f');
-      const account    = new Account(client);
-      const databases  = new Databases(client);
-      const databaseId   = '68136c4cee33221deb0f';
-      const collectionId = 'tasks';
+const client      = new Client()
+  .setEndpoint('https://fra.cloud.appwrite.io/v1')
+  .setProject('66cf3db2002471686c6f');
 
-      /* عناصر DOM */
-      const el = id => document.getElementById(id);
-      const adminPass    = el('adminPass');
-      const addBtn       = el('addBtn');
-      const refreshBtn   = el('refreshBtn');
-      const loginBox     = el('loginBox');
-      const taskForm     = el('taskForm');
-      const summaryBox   = el('summaryBox');
-      const tableBodyEl  = el('tableBody');
-      const totalCostEl  = el('totalCost');
-      const offlineBadge = el('offlineBadge');
+const account     = new Account(client);
+const databases   = new Databases(client);
+const databaseId  = '68136c4cee33221deb0f';
+const collectionId= 'tasks';
 
-      const priorityFlag  = el('priorityFlag');
-      const sessionNumber = el('sessionNumber');
-      const teacherName   = el('teacherName');
-      const recordDateTime= el('recordDateTime');
-      const recordRoom    = el('recordRoom');
+/* عناصر DOM */
+const $ = id => document.getElementById(id);
+const adminPass   = $('adminPass');
+const addBtn      = $('addBtn');
+const refreshBtn  = $('refreshBtn');
+const loginBox    = $('loginBox');
+const taskForm    = $('taskForm');
+const summaryBox  = $('summaryBox');
+const tableBodyEl = $('tableBody');
+const totalCostEl = $('totalCost');
+const offlineBadge= $('offlineBadge');
 
-      /* صلاحيات تسجيل الدخول */
-      const PASSWORDS = {
-        admin:'Admin12', accountant:'account123',
-        coordinator:'design123', entry:'entry123',
-        cameraman:'photo123', montage:'edit123',
-        media:'social123', marketing:'market123'
-      };
-      let currentRole = 'guest';
+const priorityFlag  = $('priorityFlag');
+const sessionNumber = $('sessionNumber');
+const teacherName   = $('teacherName');
+const recordDateTime= $('recordDateTime');
+const recordRoom    = $('recordRoom');
 
-      /* صلاحيات الأعمدة */
-      const roleCols = {
-        admin:'all', accountant:'all',
-        coordinator:[0,1,2,3,4,7,25],
-        entry:[0,1,2,7,8,11,12,18,19],
-        cameraman:[0,1,2,13,14],
-        montage:[0,1,2,13,16,17],
-        media:[0,1,2,7,11,18],
-        marketing:[22]
-      };
-      const editableByRole = {
-        coordinator:[3,4,7],
-        entry:[7,8,11,12,18,19],
-        montage:[16,17],
-        media:[7,11,18],
-        marketing:[22]
-      };
+/* كلمات المرور */
+const PASSWORDS = {
+  admin:'Admin12', accountant:'account123',
+  coordinator:'design123', entry:'entry123',
+  cameraman:'photo123', montage:'edit123',
+  media:'social123', marketing:'market123'
+};
+let currentRole = 'guest';
 
-      /* ====== تسجيل الدخول ====== */
-      window.checkLogin = function () {
-        const pass = adminPass.value.trim();
-        for (const [role, pwd] of Object.entries(PASSWORDS)){
-          if (pass === pwd){ currentRole = role; break; }
-        }
-        if (currentRole === 'guest') return alert('كلمة المرور غير صحيحة');
+/* صلاحيات الأعمدة */
+const roleCols = {
+  admin:'all', accountant:'all',
+  coordinator:[0,1,2,3,4,7,25],
+  entry:[0,1,2,7,8,11,12,18,19],
+  cameraman:[0,1,2,13,14],
+  montage:[0,1,2,13,16,17],
+  media:[0,1,2,7,11,18],
+  marketing:[22]
+};
+const editableByRole = {
+  coordinator:[3,4,7],
+  entry:[7,8,11,12,18,19],
+  montage:[16,17],
+  media:[7,11,18],
+  marketing:[22]
+};
 
-        loginBox.style.display = 'none';
-        taskForm.style.display = currentRole === 'admin' ? 'grid' : 'none';
-        addBtn.style.display   = currentRole === 'admin' ? 'inline-block' : 'none';
-        summaryBox.style.display = 'flex';
-        refreshBtn.style.display = 'inline-block';
+/* ============ تسجيل الدخول ============ */
+window.checkLogin = function () {
+  const pass = adminPass.value.trim();
+  for (const [role, pwd] of Object.entries(PASSWORDS)) {
+    if (pass === pwd) { currentRole = role; break; }
+  }
+  if (currentRole === 'guest') return alert('كلمة المرور غير صحيحة');
 
-        /* محاولة إنشاء/استرجاع جلسة */
-        account.get()
-          .then(loadFromAppwrite)
-          .catch(() => account.createAnonymousSession()
-                              .then(loadFromAppwrite)
-                              .catch(console.error));
+  /* تفعيل الواجهات */
+  loginBox.style.display      = 'none';
+  taskForm.style.display      = currentRole === 'admin' ? 'grid' : 'none';
+  addBtn.style.display        = currentRole === 'admin' ? 'inline-block' : 'none';
+  summaryBox.style.display    = 'flex';
+  refreshBtn.style.display    = 'inline-block';
 
-        /* فحص اتصال كل 10 ثواني */
-        setInterval(() =>
-          databases.listDocuments(databaseId, collectionId, [], 1, 0).catch(()=>{}),
-          10000
-        );
-      };
+  /* جلسة Appwrite */
+  account.get()
+    .then(loadFromAppwrite)
+    .catch(() => account.createAnonymousSession()
+                        .then(loadFromAppwrite)
+                        .catch(console.error));
 
-      /* ====== إضافة صف جديد ====== */
-      addBtn.addEventListener('click', async () => {
-        const priority  = priorityFlag.checked ? '✅' : '❌';
-        const lecture   = sessionNumber.value.trim();
-        const teacher   = teacherName.value.trim();
-        const dateTime  = recordDateTime.value;
-        if (!lecture || !teacher || !dateTime)
-          return alert('الرجاء ملء جميع الحقول');
+  /* Ping كل 10 ثوانٍ للتحقق من الاتصال */
+  setInterval(() =>
+      databases.listDocuments(databaseId, collectionId, [], 1, 0).catch(() => {}),
+    10000);
+};
 
-        const room      = recordRoom.value;
-        const empty10   = Array(10).fill('');
-        const payload   = {
-          priority,
-          lectureNumber : lecture,
-          teacherName   : teacher,
-          recordDate    : new Date(dateTime).toISOString(),
-          recordRoom    : room,
-          mainCells     : empty10,
-          cellColors    : empty10,
-          costs         : empty10,
-          totalCost     : ''
-        };
+/* ============ إضافة صف جديد ============ */
+addBtn.addEventListener('click', async () => {
+  const priority = priorityFlag.checked ? '✅' : '❌';
+  const lecture  = sessionNumber.value.trim();
+  const teacher  = teacherName.value.trim();
+  const dateTime = recordDateTime.value;
+  if (!lecture || !teacher || !dateTime) return alert('الرجاء ملء جميع الحقول');
 
-        try{
-          const doc = await databases.createDocument(
-            databaseId, collectionId, ID.unique(), payload
-          );
-          addLectureRow(priority, lecture, teacher, dateTime, room, true, doc.$id);
-          taskForm.reset(); sortTable();
-        }catch(e){ console.error(e); alert('حصل خطأ أثناء الحفظ!'); }
-      });
+  const room   = recordRoom.value;
+  const blank  = Array(10).fill('');
+  const payload = {
+    priority,
+    lectureNumber : lecture,
+    teacherName   : teacher,
+    recordDate    : new Date(dateTime).toISOString(),
+    recordRoom    : room,
+    mainCells     : blank,
+    cellColors    : blank,
+    costs         : blank,
+    totalCost     : ''
+  };
 
-      /* ====== إنشاء صفّين: بيانات + كلفة ====== */
-      function addLectureRow(priority, num, teacher, dateTime, room,
-                             skipSave = false, docId = null){
-        const main = document.createElement('tr');
-        const cost = document.createElement('tr');
-        cost.classList.add('accounting-row');
-        if (docId){ main.dataset.docId = cost.dataset.docId = docId; }
+  try {
+    const doc = await databases.createDocument(databaseId, collectionId, ID.unique(), payload);
+    addLectureRow(priority, lecture, teacher, dateTime, room, true, doc.$id);
+    taskForm.reset(); sortTable();
+  } catch (e) {
+    console.error(e); alert('حصل خطأ أثناء الحفظ!');
+  }
+});
 
-        /* الأعمدة الثلاثة الأولى */
-        [priority, num, teacher].forEach(v=>{
-          const td = document.createElement('td'); td.textContent = v; main.appendChild(td);
-        });
+/* ============ إنشاء صف البيانات والكلفة ============ */
+function addLectureRow(priority, num, teacher, dateTime, room, skipSave = false, docId = null) {
+  const main = document.createElement('tr');
+  const cost = document.createElement('tr');
+  cost.classList.add('accounting-row');
+  if (docId) main.dataset.docId = cost.dataset.docId = docId;
 
-        /* 10 خلايا رئيسية قابلة للتعديل */
-        for (let i=0;i<10;i++){
-          const td = document.createElement('td');
-          td.contentEditable = true; td.style.direction = 'rtl';
-          main.appendChild(td);
-        }
+  /* أول 3 أعمدة */
+  [priority, num, teacher].forEach(v => {
+    const td = document.createElement('td'); td.textContent = v; main.appendChild(td);
+  });
 
-        /* تاريخ + قاعة */
-        const formatted = Intl.DateTimeFormat('ar-SY',{dateStyle:'short',timeStyle:'short',hour12:false})
-                          .format(new Date(dateTime));
-        [''+formatted, room].forEach(text=>{
-          const td = document.createElement('td'); td.textContent = text; main.appendChild(td);
-        });
+  /* 10 خلايا رئيسية قابلة للتعديل */
+  for (let i = 0; i < 10; i++) {
+    const td = document.createElement('td');
+    td.contentEditable = true; td.style.direction = 'rtl';
+    main.appendChild(td);
+  }
 
-        /* أعمدة إضافية فارغة + حذف */
-        for (let i=0;i<7;i++) main.appendChild(document.createElement('td'));
-        main.appendChild(document.createElement('td')); // للكلفة (Placeholder)
+  /* التاريخ + القاعة */
+  const formatted = Intl.DateTimeFormat('ar-SY',
+      { dateStyle:'short', timeStyle:'short', hour12:false })
+      .format(new Date(dateTime));
+  [''+formatted, room].forEach(t=>{
+    const td=document.createElement('td'); td.textContent=t; main.appendChild(td);
+  });
 
-        const del = document.createElement('td');
-        del.innerHTML = '✖';
-        del.style = 'cursor:pointer;color:var(--danger);font-weight:bold;font-size:1.2rem';
-        del.onclick = () => deleteRow(main,cost);
-        main.appendChild(del);
+  /* أعمدة فارغة ثم الحذف */
+  for (let i=0;i<7;i++) main.appendChild(document.createElement('td'));
+  main.appendChild(document.createElement('td')); // للكلفة
+  const del = document.createElement('td');
+  del.innerHTML='✖'; del.style='cursor:pointer;color:var(--danger);font-weight:bold';
+  del.onclick = () => deleteRow(main,cost); main.appendChild(del);
 
-        /* صف الكلفة */
-        for (let i=0;i<3;i++) cost.appendChild(document.createElement('td'));
-        for (let i=0;i<10;i++){
-          const td = document.createElement('td');
-          td.contentEditable = true; td.classList.add('cost-input');
-          cost.appendChild(td);
-        }
-        for (let i=0;i<10;i++) cost.appendChild(document.createElement('td'));
-        const totalCell = document.createElement('td');
-        totalCell.classList.add('total-cell'); cost.appendChild(totalCell);
-        cost.appendChild(document.createElement('td')); // للحذف (نفس العمود)
+  /* صف الكلفة */
+  for(let i=0;i<3;i++) cost.appendChild(document.createElement('td'));
+  for(let i=0;i<10;i++){
+    const td=document.createElement('td');
+    td.contentEditable=true; td.classList.add('cost-input'); cost.appendChild(td);
+  }
+  for(let i=0;i<10;i++) cost.appendChild(document.createElement('td'));
+  const total=document.createElement('td'); total.classList.add('total-cell'); cost.appendChild(total);
+  cost.appendChild(document.createElement('td')); // للحذف
 
-        tableBodyEl.append(main,cost);
+  tableBodyEl.append(main,cost);
+  [...main.querySelectorAll('[contenteditable]'),
+   ...cost.querySelectorAll('[contenteditable]')]
+    .forEach(td=>td.addEventListener('blur',()=>syncRowUpdate(main,cost)));
 
-        /* أحداث الحفظ */
-        [...main.querySelectorAll('td[contenteditable]'),
-         ...cost.querySelectorAll('td[contenteditable]')]
-           .forEach(td => td.addEventListener('blur', ()=>syncRowUpdate(main,cost)));
+  if(!skipSave) saveRowToAppwrite(main,cost,dateTime,room);
+  applyPermissionsToRow(main,cost);
+}
 
-        if(!skipSave) saveRowToAppwrite(main,cost,dateTime,room);
-        applyPermissionsToRow(main,cost);
+/* حذف صف */
+function deleteRow(main,cost){
+  if(currentRole!=='admin') return;
+  const id=main.dataset.docId;
+  main.remove(); cost.remove(); calculateSummary();
+  if(id) databases.deleteDocument(databaseId,collectionId,id).catch(console.error);
+}
+
+/* التحديث */
+function syncRowUpdate(main,cost){
+  if(!navigator.onLine){
+    pushToQueue('update',{id:main.dataset.docId,data:collectRowData(main,cost)}); return;
+  }
+  updateRowTotal(cost);
+  if(currentRole==='accountant') return;
+  databases.updateDocument(databaseId,collectionId,main.dataset.docId,collectRowData(main,cost))
+           .catch(console.error);
+  sortTable();
+}
+
+/* تجميع بيانات الصف */
+function collectRowData(main,cost){
+  const m=main.querySelectorAll('td');
+  const c=cost.querySelectorAll('.cost-input');
+  return {
+    priority     : m[0].textContent,
+    lectureNumber: m[1].textContent,
+    teacherName  : m[2].textContent,
+    recordDate   : m[13].textContent,
+    recordRoom   : m[14].textContent,
+    mainCells    : [...m].slice(3,13).map(td=>td.textContent),
+    cellColors   : [...m].slice(3,13).map(td=>td.style.backgroundColor||''),
+    costs        : [...c].map(td=>td.textContent),
+    totalCost    : cost.querySelector('.total-cell').textContent
+  };
+}
+
+/* تحميل الجدول */
+function loadFromAppwrite(){
+  databases.listDocuments(databaseId,collectionId)
+    .then(({documents})=>{
+      tableBodyEl.innerHTML='';
+      documents.forEach(doc=>addLectureRow(
+        doc.priority,doc.lectureNumber,doc.teacherName,
+        doc.recordDate,doc.recordRoom,true,doc.$id));
+      calculateSummary(); sortTable(); applyPermissions(); initRealtimeOnce();
+    }).catch(console.error);
+}
+
+/* ريل تايم */
+let realtimeStarted=false;
+function initRealtimeOnce(){ if(!realtimeStarted){ initRealtime(); realtimeStarted=true; } }
+function initRealtime(){
+  const ch=`databases.${databaseId}.collections.${collectionId}.documents`;
+  client.subscribe(ch,res=>{
+    const ev=res.event||res.events?.[0]||''; const doc=res.payload||{};
+    if(ev.endsWith('.create')){
+      if(document.querySelector(`tr[data-doc-id="${doc.$id}"]`)) return;
+      addLectureRow(doc.priority,doc.lectureNumber,doc.teacherName,
+                    doc.recordDate,doc.recordRoom,true,doc.$id);
+      sortTable();
+    }else if(ev.endsWith('.update')){
+      const main=document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
+      if(!main) return;
+      const cost=main.nextElementSibling;
+      main.children[13].textContent = Intl.DateTimeFormat('ar-SY',
+        {dateStyle:'short',timeStyle:'short',hour12:false})
+        .format(new Date(doc.recordDate));
+      main.children[14].textContent = doc.recordRoom;
+      doc.mainCells .forEach((v,i)=>main.children[3+i].textContent=v);
+      doc.cellColors.forEach((c,i)=>main.children[3+i].style.backgroundColor=c||'');
+      cost.querySelectorAll('.cost-input').forEach((td,i)=>td.textContent=doc.costs[i]||'');
+      cost.querySelector('.total-cell').textContent = doc.totalCost||'';
+      calculateSummary(); sortTable();
+    }else if(ev.endsWith('.delete')){
+      const main=document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
+      if(main){ const cost=main.nextElementSibling; main.remove(); cost.remove(); calculateSummary(); }
+    }
+  });
+}
+
+/* الكلفة */
+function updateRowTotal(costRow){
+  let sum=0;
+  costRow.querySelectorAll('.cost-input').forEach(c=>{
+    const v=parseFloat(c.textContent.replace(/,/g,''));
+    if(!isNaN(v)) sum+=v;
+  });
+  costRow.querySelector('.total-cell').textContent = sum?sum.toLocaleString():'';
+  calculateSummary();
+}
+function calculateSummary(){
+  let total=0;
+  document.querySelectorAll('.total-cell').forEach(c=>{
+    const v=parseFloat(c.textContent.replace(/,/g,''));
+    if(!isNaN(v)) total+=v;
+  });
+  totalCostEl.textContent = total.toLocaleString();
+}
+
+/* ترتيب الجدول */
+function sortTable(){
+  const pairs=[];
+  for(let i=0;i<tableBodyEl.children.length;i+=2){
+    const main=tableBodyEl.children[i], cost=tableBodyEl.children[i+1];
+    const prio=main.children[0].textContent==='✅'?0:1;
+    const t=main.children[13]?.textContent.trim()||'2100-01-01 00:00';
+    pairs.push({main,cost,prio,time:new Date(t.replace(/[\u200f\u200e]/g,'')).getTime()});
+  }
+  pairs.sort((a,b)=>a.prio-b.prio||a.time-b.time)
+       .forEach(p=>tableBodyEl.append(p.main,p.cost));
+}
+
+/* دعم Offline */
+const localQueueKey='myExamsQueue_v1';
+function pushToQueue(action,payload){
+  const q=JSON.parse(localStorage.getItem(localQueueKey)||'[]'); q.push({action,payload});
+  localStorage.setItem(localQueueKey,JSON.stringify(q));
+}
+async function flushQueue(){
+  if(!navigator.onLine) return;
+  const q=JSON.parse(localStorage.getItem(localQueueKey)||'[]'); if(!q.length) return;
+  for(const item of q){
+    try{
+      if(item.action==='update'){
+        await databases.updateDocument(databaseId,collectionId,item.payload.id,item.payload.data);
       }
+    }catch(e){console.error('Sync error',e); return;}
+  }
+  localStorage.removeItem(localQueueKey);
+}
+window.addEventListener('online', ()=>{offlineBadge.classList.add('hidden');flushQueue();});
+window.addEventListener('offline',()=>offlineBadge.classList.remove('hidden'));
+if(!navigator.onLine) offlineBadge.classList.remove('hidden');
 
-      /* حذف صف */
-      function deleteRow(main,cost){
-        if(currentRole!=='admin') return;
-        const id = main.dataset.docId;
-        main.remove(); cost.remove(); calculateSummary();
-        if(id) databases.deleteDocument(databaseId, collectionId, id).catch(console.error);
-      }
+/* حفظ صف جديد */
+function saveRowToAppwrite(main,cost,dateTime,room){
+  const m=main.querySelectorAll('td'), c=cost.querySelectorAll('.cost-input');
+  const data={
+    priority:m[0].textContent, lectureNumber:m[1].textContent, teacherName:m[2].textContent,
+    recordDate:new Date(dateTime).toISOString(), recordRoom:room,
+    mainCells:[...m].slice(3,13).map(td=>td.textContent),
+    cellColors:[...m].slice(3,13).map(td=>td.style.backgroundColor||''),
+    costs:[...c].map(td=>td.textContent),
+    totalCost:cost.querySelector('.total-cell').textContent
+  };
+  databases.createDocument(databaseId,collectionId,ID.unique(),data)
+           .then(doc=>{main.dataset.docId=cost.dataset.docId=doc.$id;})
+           .catch(console.error);
+}
 
-      /* تحديث صف */
-      function syncRowUpdate(main,cost){
-        if(!navigator.onLine){
-          pushToQueue('update',{id:main.dataset.docId,data:collectRowData(main,cost)});
-          return;
-        }
-        updateRowTotal(cost);
-        if(currentRole==='accountant') return;
-        databases.updateDocument(databaseId, collectionId,
-                                 main.dataset.docId, collectRowData(main,cost))
-                 .catch(console.error);
-        sortTable();
-      }
+/* الصلاحيات */
+function applyPermissions(){
+  [...tableBodyEl.querySelectorAll('tr'), $('taskTable').querySelector('thead tr')]
+    .forEach(tr=>applyPermissionsToRow(tr,tr.nextElementSibling?.classList.contains('accounting-row')?tr.nextElementSibling:null));
+}
+function applyPermissionsToRow(main,cost){
+  if(!main) return;
+  const role=currentRole; const cols=roleCols[role]; const editable=editableByRole[role]||[];
+  const cells=[...main.children];
+  cells.forEach((td,i)=>{
+    const show=(cols==='all'||cols.includes(i));
+    td.classList.toggle('hidden',!show);
+    td.contentEditable = (role==='admin') ? (i!==cells.length-1) : editable.includes(i);
+  });
+  if(cost){
+    [...cost.children].forEach((td,i)=>{
+      const show=(cols==='all'||cols.includes(i));
+      td.classList.toggle('hidden',!show);
+      td.contentEditable = role==='admin' ? true : editable.includes(i+26);
+    });
+  }
+  cells[cells.length-1].classList.toggle('hidden',role!=='admin'); // زر الحذف
+}
+</script>
 
-      /* تجميع بيانات الصف */
-      function collectRowData(main,cost){
-        const m = main.querySelectorAll('td');
-        const c = cost.querySelectorAll('td.cost-input');
-        return {
-          priority    : m[0].textContent,
-          lectureNumber:m[1].textContent,
-          teacherName : m[2].textContent,
-          recordDate  : m[13].textContent,
-          recordRoom  : m[14].textContent,
-          mainCells   : [...m].slice(3,13).map(td=>td.textContent),
-          cellColors  : [...m].slice(3,13).map(td=>td.style.backgroundColor||''),
-          costs       : [...c].map(td=>td.textContent),
-          totalCost   : cost.querySelector('.total-cell').textContent
-        };
-      }
-
-      /* تحميل المهام */
-      function loadFromAppwrite(){
-        databases.listDocuments(databaseId, collectionId)
-          .then(({documents})=>{
-            tableBodyEl.innerHTML='';
-            documents.forEach(doc=>addLectureRow(
-              doc.priority, doc.lectureNumber, doc.teacherName,
-              doc.recordDate, doc.recordRoom, true, doc.$id
-            ));
-            calculateSummary(); sortTable(); applyPermissions(); initRealtimeOnce();
-          }).catch(console.error);
-      }
-
-      /* Realtime */
-      let realtimeStarted=false;
-      function initRealtimeOnce(){ if(!realtimeStarted){ initRealtime(); realtimeStarted=true; } }
-      function initRealtime(){
-        const channel = `databases.${databaseId}.collections.${collectionId}.documents`;
-        client.subscribe(channel,res=>{
-          const ev  = res.event||res.events?.[0]||''; const doc=res.payload||{};
-          if(ev.endsWith('.create')){
-            if(document.querySelector(`tr[data-doc-id="${doc.$id}"]`)) return;
-            addLectureRow(doc.priority,doc.lectureNumber,doc.teacherName,
-                          doc.recordDate,doc.recordRoom,true,doc.$id);
-            sortTable();
-          }else if(ev.endsWith('.update')){
-            const main=document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
-            if(!main) return;
-            const cost=main.nextElementSibling;
-            main.children[13].textContent = Intl.DateTimeFormat('ar-SY',
-              {dateStyle:'short',timeStyle:'short',hour12:false})
-              .format(new Date(doc.recordDate));
-            main.children[14].textContent = doc.recordRoom;
-            doc.mainCells .forEach((v,i)=>main.children[3+i].textContent=v);
-            doc.cellColors.forEach((c,i)=>main.children[3+i].style.backgroundColor=c||'');
-            cost.querySelectorAll('.cost-input').forEach((td,i)=>td.textContent=doc.costs[i]||'');
-            cost.querySelector('.total-cell').textContent = doc.totalCost||'';
-            calculateSummary(); sortTable();
-          }else if(ev.endsWith('.delete')){
-            const main=document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
-            if(main){ const cost=main.nextElementSibling; main.remove(); cost.remove(); calculateSummary(); }
-          }
-        });
-      }
-
-      /* كلفة كل صف + الملخص */
-      function updateRowTotal(costRow){
-        let sum=0;
-        costRow.querySelectorAll('.cost-input').forEach(c=>{
-          const v=parseFloat(c.textContent.replace(/,/g,''));
-          if(!isNaN(v)) sum+=v;
-        });
-        costRow.querySelector('.total-cell').textContent = sum?sum.toLocaleString():'';
-        calculateSummary();
-      }
-      function calculateSummary(){
-        let total=0;
-        document.querySelectorAll('.total-cell').forEach(c=>{
-          const v=parseFloat(c.textContent.replace(/,/g,''));
-          if(!isNaN(v)) total+=v;
-        });
-        totalCostEl.textContent = total.toLocaleString();
-      }
-
-      /* ترتيب الصفوف */
-      function sortTable(){
-        const pairs=[];
-        for(let i=0;i<tableBodyEl.children.length;i+=2){
-          const main=tableBodyEl.children[i], cost=tableBodyEl.children[i+1];
-          const prio=main.children[0].textContent==='✅'?0:1;
-          const dt  =main.children[13]?.textContent.trim()||'2100-01-01 00:00';
-          const time=new Date(dt.replace(/[\u200f\u200e]/g,'')).getTime();
-          pairs.push({main,cost,prio,time});
-        }
-        pairs.sort((a,b)=>a.prio-b.prio||a.time-b.time)
-             .forEach(p=>tableBodyEl.append(p.main,p.cost));
-      }
-
-      /* دعم Offline */
-      const localQueueKey='myExamsQueue_v1';
-      function pushToQueue(action,payload){
-        const q=JSON.parse(localStorage.getItem(localQueueKey)||'[]'); q.push({action,payload});
-        localStorage.setItem(localQueueKey,JSON.stringify(q));
-      }
-      async function flushQueue(){
-        if(!navigator.onLine) return;
-        const q=JSON.parse(localStorage.getItem(localQueueKey)||'[]'); if(!q.length) return;
-        for(const item of q){
-          try{
-            if(item.action==='update'){
-              await databases.updateDocument(databaseId,collectionId,item.payload.id,item.payload.data);
-            }
-          }catch(e){console.error('Sync error',e); return;}
-        }
-        localStorage.removeItem(localQueueKey);
-      }
-      window.addEventListener('online', ()=>{offlineBadge.classList.add('hidden');flushQueue();});
-      window.addEventListener('offline',()=> offlineBadge.classList.remove('hidden'));
-      if(!navigator.onLine) offlineBadge.classList.remove('hidden');
-
-      /* حفظ الصف في Appwrite */
-      function saveRowToAppwrite(main,cost,dateTime,room){
-        const m=main.querySelectorAll('td'); const c=cost.querySelectorAll('.cost-input');
-        const data={
-          priority:m[0].textContent, lectureNumber:m[1].textContent, teacherName:m[2].textContent,
-          recordDate:new Date(dateTime).toISOString(), recordRoom:room,
-          mainCells:[...m].slice(3,13).map(td=>td.textContent),
-          cellColors:[...m].slice(3,13).map(td=>td.style.backgroundColor||''),
-          costs:[...c].map(td=>td.textContent),
-          totalCost:cost.querySelector('.total-cell').textContent
-        };
-        databases.createDocument(databaseId,collectionId,ID.unique(),data)
-                 .then(doc=>{main.dataset.docId=cost.dataset.docId=doc.$id;})
-                 .catch(console.error);
-      }
-
-      /* الصلاحيات لكل صف */
-      function applyPermissions(){
-        [...tableBodyEl.querySelectorAll('tr'), document.querySelector('#taskTable thead tr')]
-          .forEach(tr=>applyPermissionsToRow(tr,tr.nextElementSibling?.classList.contains('accounting-row')?tr.nextElementSibling:null));
-      }
-      function applyPermissionsToRow(main,cost){
-        if(!main) return;
-        const role=currentRole; const cols=roleCols[role]; const editable=editableByRole[role]||[];
-        const cells=[...main.children];
-
-        cells.forEach((td,i)=>{
-          const show=(cols==='all'||cols.includes(i));
-          td.classList.toggle('hidden',!show);
-          td.contentEditable = (role==='admin') ? (i!==cells.length-1) : editable.includes(i);
-        });
-
-        if(cost){
-          [...cost.children].forEach((td,i)=>{
-            const show=(cols==='all'||cols.includes(i));
-            td.classList.toggle('hidden',!show);
-            td.contentEditable = role==='admin' ? true : editable.includes(i+26);
-          });
-        }
-
-        /* زر الحذف */
-        const delIdx=cells.length-1;
-        cells[delIdx].classList.toggle('hidden',role!=='admin');
-      }
-    }); /* نهاية DOMContentLoaded */
-  </script>
 
 </body>
 </html>
