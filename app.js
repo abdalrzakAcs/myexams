@@ -458,7 +458,25 @@ function showMenu(items, x, y, onSelect){
     `;
     row.onmouseover = () => row.style.backgroundColor = '#eee';
     row.onmouseout  = () => row.style.backgroundColor = item.color || '#fff';
-    row.onclick = ()=>{ onSelect(item); menu.remove(); };
+row.onclick = () => {
+  // --- طبّق التعديل على الخلية ---
+  const isStatus = !!item.color || typeof item.color === 'string';
+  td.textContent = item.label ?? item;           // نص الحالة أو اسم الموظف
+  if (isStatus) td.style.backgroundColor = item.color;
+
+  // --- حفــظ فوري في Appwrite ---
+  const mainRow = td.parentElement;              // صف البيانات الرئيسي
+  const costRow = mainRow.nextElementSibling?.classList.contains('accounting-row')
+                  ? mainRow.nextElementSibling
+                  : null;
+  // استدعِ syncRowUpdate مباشرةً
+  (typeof syncRowUpdate === 'function'
+      ? syncRowUpdate
+      : window.syncRowUpdate)(mainRow, costRow);
+
+  // أغلق القائمة
+  menu.remove();
+};
     menu.appendChild(row);
   });
   document.body.appendChild(menu);
