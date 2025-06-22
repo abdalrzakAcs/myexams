@@ -409,13 +409,8 @@ function applyPermissionsToRow(main, cost) {
   const last = main.children[cells.length-1];
   last.classList.toggle('hidden', currentRole !== 'admin');
 }
-// === قائمة الموظفين ===
-const names = [
-  "محمد", "أحمد", "علي", "خالد", "نور", "سارة",
-  "هدى", "رامي", "سماح", "نوار", "ياسين", "دانا"
-];
-
-// === قائمة الألوان ===
+// === قائمة أسماء الموظفين ===
+const names = ["محمد", "أحمد", "علي", "نور", "خالد", "منى", "هبة"];
 const colors = ["#fffa9e", "#caffbf", "#a0c4ff", "#ffc6c6"];
 
 document.addEventListener('contextmenu', function (e) {
@@ -424,44 +419,58 @@ document.addEventListener('contextmenu', function (e) {
 
   e.preventDefault();
 
-  // قائمة الأسماء
   const menu = document.createElement('div');
-  menu.style.position = 'fixed';
-  menu.style.top = `${e.clientY}px`;
-  menu.style.left = `${e.clientX}px`;
+  menu.style.position = 'absolute';
+  menu.style.top = `${e.pageY}px`;
+  menu.style.left = `${e.pageX}px`;
+  menu.style.zIndex = 9999;
   menu.style.background = '#fff';
   menu.style.border = '1px solid #ccc';
+  menu.style.padding = '5px 0';
+  menu.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
   menu.style.borderRadius = '8px';
-  menu.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-  menu.style.padding = '4px';
-  menu.style.zIndex = '10000';
+
   names.forEach(name => {
     const item = document.createElement('div');
     item.textContent = name;
-    item.style.padding = '6px 12px';
+    item.style.padding = '6px 18px';
     item.style.cursor = 'pointer';
-    item.onmouseover = () => item.style.background = '#eee';
-    item.onmouseout = () => item.style.background = '#fff';
-    item.onclick = () => {
+    item.style.whiteSpace = 'nowrap';
+    item.addEventListener('click', () => {
       td.textContent = name;
-      menu.remove();
-      td.dispatchEvent(new Event('blur'));
-    };
+      document.body.removeChild(menu);
+      td.dispatchEvent(new Event('blur')); // حتى يتم الحفظ التلقائي
+    });
+    item.addEventListener('mouseover', () => item.style.background = '#f1f1f1');
+    item.addEventListener('mouseout', () => item.style.background = '');
     menu.appendChild(item);
   });
 
   document.body.appendChild(menu);
-  document.addEventListener('click', () => menu.remove(), { once: true });
+
+  const closeMenu = () => {
+    if (menu.parentNode) menu.parentNode.removeChild(menu);
+    document.removeEventListener('click', closeMenu);
+  };
+  setTimeout(() => document.addEventListener('click', closeMenu), 10);
 });
 
-// === التلوين بالضغط ===
+// === التبديل بين الألوان بالنقر العادي
 document.addEventListener('click', function (e) {
   const td = e.target.closest('td');
   if (!td || !td.isContentEditable) return;
 
   const current = td.style.backgroundColor;
-  const index = colors.indexOf(current);
+  const index = colors.findIndex(c => c === rgbToHex(current));
   const nextColor = colors[(index + 1) % colors.length];
   td.style.backgroundColor = nextColor;
-  td.dispatchEvent(new Event('blur'));
+  td.dispatchEvent(new Event('blur')); // حتى يتم الحفظ التلقائي
 });
+
+function rgbToHex(rgb) {
+  if (!rgb) return '';
+  const result = /^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/.exec(rgb);
+  return result
+    ? "#" + result.slice(1).map(x => ("0" + parseInt(x).toString(16)).slice(-2)).join('')
+    : rgb;
+}
