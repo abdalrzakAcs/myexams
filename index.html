@@ -1,64 +1,46 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8" />
-<title>إدارة مهام My Exams</title>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet" />
-<style>
-  :root{
-    --primary:#0069d9;--primary-hover:#0053b3;--light-bg:#f5f7fa;
-    --card-bg:#ffffff;--border:#dfe3e8;--text-dark:#212529;
-    --shadow:0 6px 24px rgba(0,0,0,.08);--danger:#dc3545;
-  }
-  *{box-sizing:border-box;font-family:"Cairo",sans-serif;transition:.3s}
-  body{margin:0;padding:32px 16px;background:var(--light-bg);color:var(--text-dark)}
-  h2{text-align:center;margin-bottom:32px;font:700 2.2rem/1 "Cairo";
-      color:var(--primary);text-shadow:0 2px 4px rgba(0,0,0,.1)}
-
-  .login-box{max-width:420px;margin:0 auto 40px;background:#fff;padding:28px;
-             border-radius:20px;box-shadow:var(--shadow);text-align:center}
-  .login-box input,.login-box button{width:100%;padding:14px;margin:12px 0;
-             border:1px solid var(--border);border-radius:10px;font-size:1rem}
-  .login-box button{background:var(--primary);color:#fff;font-weight:700;cursor:pointer;
-             box-shadow:0 3px 12px rgba(0,105,217,.3)}
-  .login-box button:hover{background:var(--primary-hover);transform:scale(1.05)}
-
-  #taskForm{display:none;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-            gap:20px;max-width:1150px;margin:0 auto;background:var(--card-bg);
-            padding:36px;border-radius:20px;box-shadow:var(--shadow);align-items:end}
-  #taskForm label{display:flex;flex-direction:column;font-weight:600;gap:8px}
-  #taskForm input,#taskForm select,#taskForm button{
-            padding:14px 16px;border:1px solid var(--border);
-            border-radius:12px;font-size:1rem}
-  #taskForm button{background:var(--primary);color:#fff;font-weight:700;cursor:pointer}
-  #taskForm button:hover{background:var(--primary-hover);transform:scale(1.04)}
-
-  .table-wrapper{max-width:100%;max-height:70vh;overflow:auto;margin-top:48px;
-                 border-radius:20px;box-shadow:var(--shadow);background:var(--card-bg)}
-  table{width:100%;min-width:1350px;border-collapse:collapse}
-  thead th{position:sticky;top:0;background:#e9ecef;font-weight:bold;padding:16px 0}
-  th,td{padding:12px 10px;border:1px solid var(--border);text-align:center;font-size:.9rem;white-space:nowrap}
-  tr:nth-child(even){background:#fdfdfd}
-  tr:hover:not(.accounting-row){background:#f1f5f8}
-  .accounting-row td{background:#fffde7;font-weight:bold}
-
-  .total-summary{margin-top:20px;max-width:1150px;background:#fff;padding:20px;
-                 border-radius:16px;box-shadow:var(--shadow);font-size:1.1rem}
-
-  .context-menu-color{animation:fadeIn .12s ease-out;border-radius:8px}
-  @keyframes fadeIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
-</style>
+  <meta charset="UTF-8" />
+  <title>إدارة مهام My Exams</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --primary:#0069d9;--primary-hover:#0053b3;--light-bg:#f5f7fa;
+      --card-bg:#ffffff;--border:#dfe3e8;--text-dark:#212529;
+      --shadow:0 6px 24px rgba(0,0,0,.08);--danger:#dc3545;
+    }
+    *{box-sizing:border-box;font-family:"Cairo",sans-serif;transition:.3s}
+    body{margin:0;padding:32px 16px;background:var(--light-bg);color:var(--text-dark)}
+    h2{text-align:center;margin-bottom:32px;font:700 2.2rem/1 "Cairo";color:var(--primary);text-shadow:0 2px 4px rgba(0,0,0,.1)}
+    .login-box{max-width:420px;margin:0 auto 40px;background:#fff;padding:28px;border-radius:20px;box-shadow:var(--shadow);text-align:center}
+    .login-box input,.login-box button{width:100%;padding:14px;margin:12px 0;border:1px solid var(--border);border-radius:10px;font-size:1rem}
+    .login-box button{background:var(--primary);color:#fff;font-weight:700;cursor:pointer;box-shadow:0 3px 12px rgba(0,105,217,.3)}
+    .login-box button:hover{background:var(--primary-hover);transform:scale(1.05)}
+    #taskForm{display:none;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px;max-width:1150px;margin:0 auto;background:var(--card-bg);padding:36px;border-radius:20px;box-shadow:var(--shadow);align-items:end}
+    #taskForm label{display:flex;flex-direction:column;font-weight:600;gap:8px}
+    #taskForm input,#taskForm select,#taskForm button{padding:14px 16px;border:1px solid var(--border);border-radius:12px;font-size:1rem}
+    #taskForm button{background:var(--primary);color:#fff;font-weight:700;cursor:pointer}
+    #taskForm button:hover{background:var(--primary-hover);transform:scale(1.04)}
+    .table-wrapper{max-width:100%;max-height:70vh;overflow:auto;margin-top:48px;border-radius:20px;box-shadow:var(--shadow);background:var(--card-bg)}
+    table{width:100%;min-width:1350px;border-collapse:collapse}
+    thead th{position:sticky;top:0;background:#e9ecef;font-weight:bold;padding:16px 0}
+    th,td{padding:12px 10px;border:1px solid var(--border);text-align:center;font-size:.9rem;white-space:nowrap}
+    tr:nth-child(even){background:#fdfdfd}
+    tr:hover:not(.accounting-row){background:#f1f5f8}
+    .accounting-row td{background:#fffde7;font-weight:bold}
+    .total-summary{margin-top:20px;max-width:1150px;background:#fff;padding:20px;border-radius:16px;box-shadow:var(--shadow);font-size:1.1rem;display:flex;justify-content:space-between;align-items:center}
+    .context-menu-color{animation:fadeIn .12s ease-out;border-radius:8px}
+    @keyframes fadeIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+    .hidden{display:none!important}
+  </style>
 </head>
 <body>
 <div style="text-align:center;margin-bottom:20px">
-  <p style="font-size:1.8rem;font-weight:bold;color:#0069d9;margin:0;
-            text-shadow:0 2px 4px rgba(0,0,0,.1)">
-    بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيمِ
-  </p>
+  <p style="font-size:1.8rem;font-weight:bold;color:#0069d9;margin:0;text-shadow:0 2px 4px rgba(0,0,0,.1)">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيمِ</p>
 </div>
 
 <h2>قائمة المهام لمشروع My Exams</h2>
-
 <!-- صندوق الدخول -->
 <div class="login-box" id="loginBox">
   <input type="password" id="adminPass" placeholder="أدخل كلمة المرور" />
@@ -83,6 +65,11 @@
   <button type="button" id="addBtn">إضافة</button>
 </form>
 
+<!-- زر تحديث -->
+<div style="text-align:center;margin-top:8px">
+  <button id="refreshBtn" style="padding:8px 18px;border:none;border-radius:10px;background:var(--primary);color:#fff;font-weight:600;cursor:pointer;display:none">🔄 تحديث</button>
+</div>
+
 <!-- الجدول -->
 <div class="table-wrapper">
   <table id="taskTable">
@@ -103,401 +90,412 @@
 
 <!-- الملخص -->
 <div class="total-summary" id="summaryBox" style="display:none">
-  💰 <strong>إجمالي الكلفة:</strong> <span id="totalCost">0</span> ل.س
+  <span>💰 <strong>إجمالي الكلفة:</strong> <span id="totalCost">0</span> ل.س</span>
+  <span id="offlineBadge" class="hidden" style="color:var(--danger);font-weight:bold">🚫 أوفلاين</span>
 </div>
-
 <!-- Appwrite CDN -->
 <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.0"></script>
-
 <script>
 /* ========== إعداد Appwrite ========== */
 const { Client, Databases, Account, ID } = Appwrite;
-const client = new Client()
-  .setEndpoint('https://fra.cloud.appwrite.io/v1')
-  .setProject('66cf3db2002471686c6f');
-
+const client = new Client().setEndpoint('https://fra.cloud.appwrite.io/v1').setProject('66cf3db2002471686c6f');
 const account   = new Account(client);
 const databases = new Databases(client);
-
-const databaseId   = '68136c4cee33221deb0f';
+const databaseId = '68136c4cee33221deb0f';
 const collectionId = 'tasks';
 
-account.get()
-  .then(()=>{window.sessionReady=true;})
-  .catch(()=>{
-    account.createAnonymousSession()
-      .then(()=>{window.sessionReady=true;})
-      .catch(console.error);
-  });
+/* ========== عناصر DOM ========== */
+const adminPass = document.getElementById('adminPass');
+const addBtn = document.getElementById('addBtn');
+const refreshBtn = document.getElementById('refreshBtn');
+const loginBox = document.getElementById('loginBox');
+const taskForm = document.getElementById('taskForm');
+const summaryBox = document.getElementById('summaryBox');
+const tableBodyEl = document.getElementById('tableBody');
+const totalCost = document.getElementById('totalCost');
+const offlineBadge = document.getElementById('offlineBadge');
 
-/* ---------- عناصر DOM ---------- */
-const adminPass      = document.getElementById('adminPass');
-const addBtn         = document.getElementById('addBtn');
-
-const loginBox       = document.getElementById('loginBox');
-const taskForm       = document.getElementById('taskForm');
-const summaryBox     = document.getElementById('summaryBox');
-const tableBodyEl    = document.getElementById('tableBody');
-const totalCost      = document.getElementById('totalCost');
-
-const priorityFlag   = document.getElementById('priorityFlag');
-const sessionNumber  = document.getElementById('sessionNumber');
-const teacherName    = document.getElementById('teacherName');
+const priorityFlag = document.getElementById('priorityFlag');
+const sessionNumber = document.getElementById('sessionNumber');
+const teacherName = document.getElementById('teacherName');
 const recordDateTime = document.getElementById('recordDateTime');
-const recordRoom     = document.getElementById('recordRoom');
+const recordRoom = document.getElementById('recordRoom');
 
-/* ---------- صلاحيات ---------- */
-const PASSWORDS  = { admin:'Admin12', accountant:'account123' };
-let   currentRole= 'guest';
+/* ========== صلاحيات ========== */
+const PASSWORDS = {
+  admin:'Admin12', accountant:'account123',
+  coordinator:'design123', entry:'entry123', cameraman:'photo123', montage:'edit123',
+  media:'social123', marketing:'market123'
+};
+let currentRole='guest';
 
-/* ========== تسجيل الدخول ========== */
+/* الأعمدة المسموحة لكل دور */
+const roleCols = {
+  admin:'all',
+  accountant:'all',
+  coordinator:[0,1,2,3,4,7,25],
+  entry:[0,1,2,7,8,11,12,18,19],
+  cameraman:[0,1,2,13,14],
+  montage:[0,1,2,13,16,17],
+  media:[0,1,2,7,11,18],
+  marketing:[22]
+};
+/* الأعمدة التي يمكن تعديلها لكل دور (غير الأدمين) */
+const editableByRole = {
+  coordinator:[3,4,7],
+  entry:[7,8,11,12,18,19],
+  cameraman:[],
+  montage:[16,17],
+  media:[7,11,18],
+  marketing:[22]
+};
+
 /* ========== تسجيل الدخول ========== */
 function checkLogin(){
   const pass = adminPass.value.trim();
-  if(pass===PASSWORDS.admin) currentRole='admin';
-  else if(pass===PASSWORDS.accountant) currentRole='accountant';
-  else return alert('كلمة المرور غير صحيحة');
+  for(const [role,pwd] of Object.entries(PASSWORDS)){
+    if(pass===pwd){currentRole=role;break;}
+  }
+  if(currentRole==='guest') return alert('كلمة المرور غير صحيحة');
 
   loginBox.style.display='none';
-  taskForm.style.display  = currentRole==='admin' ? 'grid' : 'none';
-  summaryBox.style.display= 'block';
+  taskForm.style.display = currentRole==='admin'? 'grid':'none';
+  addBtn.style.display = currentRole==='admin'?'inline-block':'none';
+  summaryBox.style.display='flex';
+  refreshBtn.style.display='inline-block';
 
-  if(window.sessionReady) loadFromAppwrite(); else {
-    const int=setInterval(()=>{
-      if(window.sessionReady){loadFromAppwrite();clearInterval(int);}
-    },200);
-  }
+  account.get().then(()=>loadFromAppwrite()).catch(()=>{
+    account.createAnonymousSession().then(loadFromAppwrite).catch(console.error);
+  });
 
-  // 👈👈 هنا أضف كود الـ Heartbeat 👈👈
-  setInterval(() => {
-    databases.listDocuments(databaseId, collectionId, [], 1, 0).catch(() => {});
-  }, 10000); // Heartbeat كل 20 ثانية (أكثر من كافي)
+  setInterval(()=>{
+    databases.listDocuments(databaseId,collectionId,[],1,0).catch(()=>{});
+  },10000);
 }
-
-
 /* ========== إضافة صف جديد ========== */
-/* 👈 هذا هو الجزء المعدَّل بالكامل */
-addBtn.addEventListener('click', async ()=>{
-  const priority     = priorityFlag.checked ? '✅' : '❌';
-  const lectureNum   = sessionNumber.value.trim();
-  const teacher      = teacherName.value.trim();
-  const dateTime     = recordDateTime.value;
-  const room         = recordRoom.value;
-
-  if(!lectureNum || !teacher || !dateTime) return alert('الرجاء ملء جميع الحقول');
-
-  /* 1️⃣ نحضّر الـ payload */
+addBtn.addEventListener('click', async () => {
+  const priority = priorityFlag.checked ? '✅' : '❌';
+  const lectureNum = sessionNumber.value.trim();
+  const teacher = teacherName.value.trim();
+  const dateTime = recordDateTime.value;
+  if (!lectureNum || !teacher || !dateTime) return alert('الرجاء ملء جميع الحقول');
+  const room = recordRoom.value;
   const emptyCells = Array(10).fill('');
-const payload = {
-  priority,
-  lectureNumber: lectureNum,
-  teacherName:   teacher,
-  recordDate:    new Date(dateTime).toISOString(),
-  recordRoom:    room,
-  mainCells:   emptyCells,
-  cellColors:  emptyCells,
-  costs:       emptyCells,
-  totalCost:   ''
-};
-
-
-  try{
-    /* 2️⃣ إنشاء المستند أولاً */
+  const payload = {
+    priority,
+    lectureNumber: lectureNum,
+    teacherName: teacher,
+    recordDate: new Date(dateTime).toISOString(),
+    recordRoom: room,
+    mainCells: emptyCells,
+    cellColors: emptyCells,
+    costs: emptyCells,
+    totalCost: ''
+  };
+  try {
     const doc = await databases.createDocument(databaseId, collectionId, ID.unique(), payload);
-
-    /* 3️⃣ وبعد نجاح الإنشاء منضيف الصفّ (skipSave=true) */
-    addLectureRow(priority, lectureNum, teacher, dateTime, room, true);
-
-    /* 4️⃣ ربط الـ docId مباشرة لتفادي تكرار Realtime */
-    const rows = document.querySelectorAll('#tableBody tr');
-    const cost = rows[rows.length-1];
-    const main = rows[rows.length-2];
-    main.dataset.docId = cost.dataset.docId = doc.$id;
-
-    taskForm.reset();
-    sortTable();
-  }catch(err){
-    console.error(err);
+    addLectureRow(priority, lectureNum, teacher, dateTime, room, true, doc.$id);
+    taskForm.reset(); sortTable();
+  } catch (e) {
+    console.error(e);
     alert('حصل خطأ أثناء الحفظ!');
   }
 });
 
-/* ---------- حذف صف ---------- */
-function deleteRow(main, cost){
-  const id = main.dataset.docId;
-  if (id){
-    databases.deleteDocument(databaseId, collectionId, id)
-      .then(()=>{
-        main.remove();
-        cost.remove();
-        calculateSummary();
-      })
-      .catch(console.error);
-  } else {
-    main.remove();
-    cost.remove();
-    calculateSummary();
-  }
-}
-
-/* ---------- إنشاء صفّي البيانات والكلفة ---------- */
-function addLectureRow(priority,num,teacher,dateTime,room,skipSave=false){
-  const body = tableBodyEl;
+/* ========== إنشاء صفّي البيانات والكلفة ========== */
+function addLectureRow(priority, num, teacher, dateTime, room, skipSave = false, docId = null) {
   const main = document.createElement('tr');
-  const cost = document.createElement('tr'); cost.classList.add('accounting-row');
+  const cost = document.createElement('tr');
+  cost.classList.add('accounting-row');
+  if (docId) {
+    main.dataset.docId = cost.dataset.docId = docId;
+  }
 
-  /* ثابتة */
-  [priority,num,teacher].forEach(v=>{
-    const td=document.createElement('td');td.textContent=v;main.appendChild(td);
+  [priority, num, teacher].forEach(v => {
+    const td = document.createElement('td');
+    td.textContent = v;
+    main.appendChild(td);
   });
 
-  /* ١٠ خانات مهام قابلة للتحرير */
-  for(let i=0;i<10;i++){
-    const td=document.createElement('td');
-    td.contentEditable=true;td.style.direction='rtl';
+  // 10 خلايا الرئيسية (تنسيق، رافع، مدخل، ...إلخ)
+  for (let i = 0; i < 10; i++) {
+    const td = document.createElement('td');
+    td.contentEditable = true;
+    td.style.direction = 'rtl';
     main.appendChild(td);
   }
 
-  /* التاريخ + القاعة */
-const formattedDateTime = new Date(dateTime).toLocaleString('ar-SY', {
-  dateStyle: 'short',
-  timeStyle: 'short',
-  hour12: false,
-});
+  const formatted = Intl.DateTimeFormat('ar-SY', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+    hour12: false
+  }).format(new Date(dateTime));
+  const dtd = document.createElement('td');
+  dtd.textContent = formatted;
+  main.appendChild(dtd);
 
-const dateTd = document.createElement('td'); 
-dateTd.textContent = formattedDateTime; 
-main.appendChild(dateTd);
-  const roomTd=document.createElement('td'); roomTd.textContent=room;     main.appendChild(roomTd);
+  const rtd = document.createElement('td');
+  rtd.textContent = room;
+  main.appendChild(rtd);
 
-  /* المصور + بقية الأعمدة */
-  main.appendChild(document.createElement('td'));
-  for(let i=0;i<7;i++) main.appendChild(document.createElement('td'));
-
-  /* الكلفة + حذف */
-  main.appendChild(document.createElement('td'));
-  const del=document.createElement('td');
-  del.innerHTML='<span style="cursor:pointer;color:var(--danger);font-weight:bold;font-size:1.2rem">✖</span>';
+  // المصور + مونتاج + إدخالات + حذف
+  for (let i = 0; i < 7; i++) main.appendChild(document.createElement('td'));
+  main.appendChild(document.createElement('td')); // عمود إضافي للكلفة أو حذف لاحقاً
+  const del = document.createElement('td');
+  del.innerHTML = '✖';
+  del.style = "cursor:pointer;color:var(--danger);font-weight:bold;font-size:1.2rem";
   del.onclick = () => deleteRow(main, cost);
   main.appendChild(del);
 
-  /* صف الكلف */
-  for(let i=0;i<3;i++) cost.appendChild(document.createElement('td'));
-  for(let i=0;i<10;i++){
-    const td=document.createElement('td');
-    td.contentEditable=true;td.style.direction='rtl';td.classList.add('cost-input');
-    td.addEventListener('keydown',e=>{
-      if(e.key==='Enter'){e.preventDefault();updateRowTotal(cost);}
-    });
+  // صف الكلفة
+  for (let i = 0; i < 3; i++) cost.appendChild(document.createElement('td'));
+  for (let i = 0; i < 10; i++) {
+    const td = document.createElement('td');
+    td.contentEditable = true;
+    td.classList.add('cost-input');
     cost.appendChild(td);
   }
-  for(let i=0;i<10;i++) cost.appendChild(document.createElement('td'));
+  for (let i = 0; i < 10; i++) cost.appendChild(document.createElement('td'));
+  const totalCell = document.createElement('td');
+  totalCell.classList.add('total-cell');
+  cost.appendChild(totalCell);
+  cost.appendChild(document.createElement('td')); // للحذف
 
-  const totalCell=document.createElement('td');totalCell.classList.add('total-cell');cost.appendChild(totalCell);
-  cost.appendChild(document.createElement('td'));
-
-  body.appendChild(main); body.appendChild(cost);
-  if(!skipSave) saveRowToAppwrite(main,cost,dateTime,room);
+  tableBodyEl.appendChild(main);
+  tableBodyEl.appendChild(cost);
 
   [...main.querySelectorAll('td[contenteditable]'),
    ...cost.querySelectorAll('td[contenteditable]')]
-   .forEach(td=>td.addEventListener('blur',()=>syncRowUpdate(main,cost)));
+    .forEach(td => td.addEventListener('blur', () => syncRowUpdate(main, cost)));
+
+  if (!skipSave) saveRowToAppwrite(main, cost, dateTime, room);
+  applyPermissionsToRow(main, cost);
 }
 
-/* ---------- حساب كلفة صف ---------- */
-function updateRowTotal(costRow){
-  let sum=0;
-  costRow.querySelectorAll('td.cost-input').forEach(c=>{
-    const v=parseFloat(c.textContent.replace(/,/g,'').trim());
-    if(!isNaN(v)) sum+=v;
-  });
-  costRow.querySelector('.total-cell').textContent=sum?sum.toLocaleString():'';  
+/* حذف صف */
+function deleteRow(main, cost) {
+  if (currentRole !== 'admin') return;
+  const id = main.dataset.docId;
+  tableBodyEl.removeChild(main);
+  tableBodyEl.removeChild(cost);
   calculateSummary();
+  if (id) databases.deleteDocument(databaseId, collectionId, id).catch(console.error);
 }
+/* ========== تحديث صف ========== */
+function syncRowUpdate(main, cost) {
+  if (!navigator.onLine) {
+    pushToQueue('update', {
+      id: main.dataset.docId,
+      data: collectRowData(main, cost)
+    });
+    return;
+  }
 
-/* ---------- حفظ صفّ (يُستخدم فقط لو أضفت صفّ محلي بدون createDocument) ---------- */
-function saveRowToAppwrite(main,cost,dateTime,room){
-  const m=main.querySelectorAll('td'); const c=cost.querySelectorAll('td.cost-input');
-  const payload={
-    priority   :m[0].textContent,
-    lectureNumber:m[1].textContent,
-    teacherName:m[2].textContent,
-    recordDate :dateTime,
-    recordRoom :room,
-    mainCells  :[...m].slice(3,13).map(td=>td.textContent),
-    cellColors :[...m].slice(3,13).map(td=>td.style.backgroundColor||''),
-    costs      :[...c].map(td=>td.textContent),
-    totalCost  :cost.querySelector('.total-cell').textContent
-  };
-  databases.createDocument(databaseId,collectionId,ID.unique(),payload)
-    .then(doc=>{main.dataset.docId=cost.dataset.docId=doc.$id;})
-    .catch(console.error);
-}
-
-/* ---------- تحديث صف ---------- */
-function syncRowUpdate(main,cost){
-  const id=main.dataset.docId; if(!id) return;
   updateRowTotal(cost);
+  if (currentRole === 'accountant') return; // المحاسب ما بيعدل شي
 
-  const m=main.querySelectorAll('td'); const c=cost.querySelectorAll('td.cost-input');
-  const data={
-    priority      :m[0].textContent,
-    lectureNumber :m[1].textContent,
-    teacherName   :m[2].textContent,
-    recordDate    :m[13].textContent,
-    recordRoom    :m[14].textContent,
-    mainCells     :[...m].slice(3,13).map(td=>td.textContent),
-    cellColors    :[...m].slice(3,13).map(td=>td.style.backgroundColor||''),
-    costs         :[...c].map(td=>td.textContent),
-    totalCost     :cost.querySelector('.total-cell').textContent
-  };
-  databases.updateDocument(databaseId,collectionId,id,data).catch(console.error);
+  databases.updateDocument(databaseId, collectionId, main.dataset.docId, collectRowData(main, cost)).catch(console.error);
   sortTable();
 }
 
-/* ========== تحميل البيانات ========== */
-function loadFromAppwrite(){
-  databases.listDocuments(databaseId,collectionId).then(({documents})=>{
-    documents.forEach(doc=>{
-      addLectureRow(doc.priority,doc.lectureNumber,doc.teacherName,
-                    doc.recordDate,doc.recordRoom,true);
-      const rows=document.querySelectorAll('#tableBody tr');
-      const cost=rows[rows.length-1];
-      const main=rows[rows.length-2];
-      main.dataset.docId=cost.dataset.docId=doc.$id;
+/* ========== تجميع بيانات الصف لتحديثها ========== */
+function collectRowData(main, cost) {
+  const m = main.querySelectorAll('td');
+  const c = cost.querySelectorAll('td.cost-input');
+  return {
+    priority: m[0].textContent,
+    lectureNumber: m[1].textContent,
+    teacherName: m[2].textContent,
+    recordDate: m[13].textContent,
+    recordRoom: m[14].textContent,
+    mainCells: [...m].slice(3, 13).map(td => td.textContent),
+    cellColors: [...m].slice(3, 13).map(td => td.style.backgroundColor || ''),
+    costs: [...c].map(td => td.textContent),
+    totalCost: cost.querySelector('.total-cell').textContent
+  };
+}
 
-      main.querySelectorAll('td').forEach((td,i)=>{
-        if(i>=3 && i<main.children.length-2) td.textContent=doc.mainCells[i-3]||'';
-      });
-      doc.cellColors?.forEach((clr,i)=>{
-        const td=main.children[3+i]; if(td) td.style.backgroundColor=clr;
-      });
-      cost.querySelectorAll('td.cost-input').forEach((td,i)=>{td.textContent=doc.costs[i]||'';});
-      cost.querySelector('.total-cell').textContent=doc.totalCost||'';
-
-      [...main.querySelectorAll('td[contenteditable]'),
-       ...cost.querySelectorAll('td[contenteditable]')]
-       .forEach(td=>td.addEventListener('blur',()=>syncRowUpdate(main,cost)));
-    });
-    calculateSummary(); sortTable();
-    if(!window.realtimeStarted){initRealtime();window.realtimeStarted=true;}
+/* ========== تحميل المهام من Appwrite ========== */
+function loadFromAppwrite() {
+  databases.listDocuments(databaseId, collectionId).then(({ documents }) => {
+    tableBodyEl.innerHTML = '';
+    documents.forEach(doc =>
+      addLectureRow(doc.priority, doc.lectureNumber, doc.teacherName, doc.recordDate, doc.recordRoom, true, doc.$id)
+    );
+    calculateSummary();
+    sortTable();
+    applyPermissions();
+    initRealtimeOnce();
   }).catch(console.error);
 }
 
-/* ========== Realtime ========== */
-function initRealtime(){
-  const channel=`databases.${databaseId}.collections.${collectionId}.documents`;
-  client.subscribe(channel,(res)=>{
-    const event=res.event||res.events?.[0]||"";
-    const doc  =res.payload||{};
+/* ========== تحديث مباشر (Realtime) ========== */
+let realtimeStarted = false;
+function initRealtimeOnce() {
+  if (realtimeStarted) return;
+  initRealtime();
+  realtimeStarted = true;
+}
 
-    if(event.endsWith(".create")){
-      if(document.querySelector(`tr[data-doc-id="${doc.$id}"]`)) return;
-      addLectureRow(doc.priority,doc.lectureNumber,doc.teacherName,
-                    doc.recordDate,doc.recordRoom,true);
+function initRealtime() {
+  const channel = `databases.${databaseId}.collections.${collectionId}.documents`;
+  client.subscribe(channel, res => {
+    const event = res.event || res.events?.[0] || '';
+    const doc = res.payload || {};
+
+    if (event.endsWith('.create')) {
+      if (document.querySelector(`tr[data-doc-id="${doc.$id}"]`)) return;
+      addLectureRow(doc.priority, doc.lectureNumber, doc.teacherName, doc.recordDate, doc.recordRoom, true, doc.$id);
       sortTable();
-    }
-    else if(event.endsWith(".update")){
-      const main=document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
-      if(!main) return;
-      const cost=main.nextElementSibling;
-      const formattedDateTime = new Date(doc.recordDate).toLocaleString('ar-SY', {
-  dateStyle: 'short',
-  timeStyle: 'short',
-  hour12: false,
-});
-
-main.children[13].textContent = formattedDateTime;
-
-      main.children[14].textContent=doc.recordRoom;
-      doc.mainCells.forEach((v,i)=>{main.children[3+i].textContent=v;});
-      doc.cellColors?.forEach((clr,i)=>{
-        const td=main.children[3+i]; if(td) td.style.backgroundColor=clr;
-      });
-      cost.querySelectorAll('td.cost-input').forEach((td,i)=>{td.textContent=doc.costs[i]||'';});
-      cost.querySelector('.total-cell').textContent=doc.totalCost||'';
-      calculateSummary(); sortTable();
-    }
-    else if(event.endsWith(".delete")){
-      const main=document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
-      if(main){
-        const cost=main.nextElementSibling;
-        main.remove(); if(cost) cost.remove();
-        calculateSummary(); sortTable();
+    } else if (event.endsWith('.update')) {
+      const main = document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
+      if (!main) return;
+      const cost = main.nextElementSibling;
+      main.children[13].textContent = Intl.DateTimeFormat('ar-SY', { dateStyle: 'short', timeStyle: 'short', hour12: false }).format(new Date(doc.recordDate));
+      main.children[14].textContent = doc.recordRoom;
+      doc.mainCells.forEach((v, i) => main.children[3 + i].textContent = v);
+      doc.cellColors.forEach((clr, i) => main.children[3 + i].style.backgroundColor = clr || '');
+      cost.querySelectorAll('td.cost-input').forEach((td, i) => td.textContent = doc.costs[i] || '');
+      cost.querySelector('.total-cell').textContent = doc.totalCost || '';
+      calculateSummary();
+      sortTable();
+    } else if (event.endsWith('.delete')) {
+      const main = document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
+      if (main) {
+        const cost = main.nextElementSibling;
+        main.remove();
+        cost.remove();
+        calculateSummary();
       }
     }
   });
 }
 
-/* ========== المجموع الكلي ========== */
-function calculateSummary(){
-  let total=0;
-  document.querySelectorAll('.total-cell').forEach(c=>{
-    const v=parseFloat(c.textContent.replace(/,/g,''));
-    if(!isNaN(v)) total+=v;
+/* ========== حساب مجموع الكلفة ========== */
+function updateRowTotal(costRow) {
+  let sum = 0;
+  costRow.querySelectorAll('td.cost-input').forEach(c => {
+    const v = parseFloat(c.textContent.replace(/,/g, ''));
+    if (!isNaN(v)) sum += v;
   });
-  totalCost.textContent=total.toLocaleString();
+  costRow.querySelector('.total-cell').textContent = sum ? sum.toLocaleString() : '';
+  calculateSummary();
 }
 
-/* ========== ترتيب الصفوف ========== */
-function sortTable(){
-  const body=tableBodyEl; const pairs=[];
-  for(let i=0;i<body.children.length;i+=2){
-    const main=body.children[i],cost=body.children[i+1];
-    const prio=main.children[0].textContent==='✅'?0:1;
-    const dateText = main.children[13]?.textContent?.trim() || '2100-01-01T00:00';
-    const date = new Date(dateText).getTime();
-    pairs.push({main,cost,prio,date});
+function calculateSummary() {
+  let total = 0;
+  document.querySelectorAll('.total-cell').forEach(c => {
+    const v = parseFloat(c.textContent.replace(/,/g, ''));
+    if (!isNaN(v)) total += v;
+  });
+  totalCost.textContent = total.toLocaleString();
+}
+
+/* ========== ترتيب الصفوف حسب الأولوية والتاريخ ========== */
+function sortTable() {
+  const body = tableBodyEl;
+  const pairs = [];
+  for (let i = 0; i < body.children.length; i += 2) {
+    const main = body.children[i];
+    const cost = body.children[i + 1];
+    const prio = main.children[0].textContent === '✅' ? 0 : 1;
+    const dateText = main.children[13]?.textContent.trim() || '2100-01-01 00:00';
+    const date = new Date(dateText.replace(/[\u200f\u200e]/g, '')).getTime();
+    pairs.push({ main, cost, prio, date });
   }
-  pairs.sort((a,b)=>a.prio-b.prio||a.date-b.date);
-  pairs.forEach(p=>{body.appendChild(p.main);body.appendChild(p.cost);});
+  pairs.sort((a, b) => a.prio - b.prio || a.date - b.date);
+  pairs.forEach(p => {
+    body.appendChild(p.main);
+    body.appendChild(p.cost);
+  });
+}
+/* ---------- دعم الأوفلاين ---------- */
+const localQueueKey = 'myExamsQueue_v1';
+
+function pushToQueue(action, payload){
+  const q = JSON.parse(localStorage.getItem(localQueueKey) || '[]');
+  q.push({ action, payload });
+  localStorage.setItem(localQueueKey, JSON.stringify(q));
 }
 
-/* ========== قائمة السياق للأسماء والألوان ========== */
-document.addEventListener('contextmenu',e=>{
-  if(!e.target.isContentEditable) return;
+async function flushQueue(){
+  if (!navigator.onLine) return;
+  const q = JSON.parse(localStorage.getItem(localQueueKey) || '[]');
+  if (!q.length) return;
 
-  const nameCols=[4,6,8,10,12,14,16,18,20];
-  const cell=e.target; const col=[...cell.parentNode.children].indexOf(cell);
+  for (const item of q){
+    try{
+      if(item.action === 'update'){
+        await databases.updateDocument(databaseId, collectionId, item.payload.id, item.payload.data);
+      }
+      // لو احتجت دعم create أو delete أضف حالات هنا
+    }catch(e){ console.error('Sync error', e); return; }
+  }
+  localStorage.removeItem(localQueueKey);
+}
 
-  const menu=document.createElement('div');
-  menu.style=`position:fixed;top:${e.clientY}px;left:${e.clientX}px;background:#fff;
-    border:1px solid #ccc;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);
-    z-index:1000;padding:6px 0;min-width:160px`;
-  document.querySelectorAll('body>.context-menu-color').forEach(m=>m.remove());
-  menu.classList.add('context-menu-color');
+window.addEventListener('online', ()=>{ offlineBadge.classList.add('hidden'); flushQueue(); });
+window.addEventListener('offline', ()=> offlineBadge.classList.remove('hidden'));
+if(!navigator.onLine) offlineBadge.classList.remove('hidden');
 
-  if(nameCols.includes(col)){
-    ["كنان الفران","أحمد زرنيخ","مايا وهابية","سنا زيادة","مصطفى حمزة","محمد فارس"]
-      .forEach(name=>{
-        const o=document.createElement('div');
-        o.textContent=name;o.style.padding='10px 16px';o.style.cursor='pointer';
-        o.onclick=()=>{cell.textContent=name;menu.remove();
-          const main=cell.closest('tr[data-doc-id]');const cost=main?.nextElementSibling;
-          if(main&&cost) syncRowUpdate(main,cost);
-        };
-        menu.appendChild(o);
-      });
-  }else{
-    const colors=["transparent","#fff9c4","#ffe082","#c8e6c9","#212121"];
-    const labels=["شفاف","أصفر فاتح","أصفر غامق","أخضر","أسود"];
-    colors.forEach((color,i)=>{
-      const o=document.createElement('div');
-      o.textContent=labels[i];o.style.padding='10px 16px';o.style.cursor='pointer';
-      o.style.backgroundColor=color==='transparent'?'#fff':color;
-      o.style.color=color==='#212121'?'#fff':'#000';
-      o.onclick=()=>{
-        cell.style.backgroundColor=color;menu.remove();
-        const main=cell.closest('tr[data-doc-id]');const cost=main?.nextElementSibling;
-        if(main&&cost) syncRowUpdate(main,cost);
-      };
-      menu.appendChild(o);
+/* ========== تطبيق صلاحيات كل حساب ========== */
+function applyPermissions() {
+  const allTrs = [...tableBodyEl.querySelectorAll('tr'), document.querySelector('#taskTable thead tr')];
+  allTrs.forEach(tr => applyPermissionsToRow(tr, tr.nextElementSibling?.classList.contains('accounting-row') ? tr.nextElementSibling : null));
+}
+function saveRowToAppwrite(main, cost, dateTime, room){
+  const m = main.querySelectorAll('td');
+  const c = cost.querySelectorAll('td.cost-input');
+  const data = {
+    priority: m[0].textContent,
+    lectureNumber: m[1].textContent,
+    teacherName: m[2].textContent,
+    recordDate: new Date(dateTime).toISOString(),
+    recordRoom: room,
+    mainCells: [...m].slice(3,13).map(td=>td.textContent),
+    cellColors: [...m].slice(3,13).map(td=>td.style.backgroundColor || ''),
+    costs: [...c].map(td=>td.textContent),
+    totalCost: cost.querySelector('.total-cell').textContent
+  };
+  databases.createDocument(databaseId, collectionId, ID.unique(), data)
+    .then(doc => { main.dataset.docId = cost.dataset.docId = doc.$id; })
+    .catch(console.error);
+}
+
+function applyPermissionsToRow(main, cost) {
+  if (!main) return;
+
+  const role = currentRole;
+  const cols = roleCols[role];
+  const editable = editableByRole[role] || [];
+  const cells = [...main.children];
+
+  // إخفاء الأعمدة أو السماح بها
+  if (cols !== 'all') {
+    cells.forEach((td, i) => {
+      if (!cols.includes(i)) td.classList.add('hidden');
+      else td.classList.remove('hidden');
+      td.contentEditable = editable.includes(i) || role === 'admin';
+    });
+  } else {
+    cells.forEach((td, i) => {
+      td.classList.remove('hidden');
+      td.contentEditable = role !== 'accountant';
     });
   }
-  document.body.appendChild(menu);
-  document.addEventListener('click',()=>{menu.remove();},{once:true});
-  e.preventDefault();
-});
-</script>
-</body>
-</html>
+
+  // كلفة (الصف الثاني)
+  if (cost) {
+    [...cost.children].forEach((td, i) => {
+      if (cols !== 'all' && !cols.includes(i)) td.classList.add('hidden');
+      else td.classList.remove('hidden');
+      td.contentEditable = editable.includes(i + 26) || role === 'admin'; // 26 لأنه الكلفة بالصف التاني
+    });
+  }
+
+  // إخفاء زر الحذف إذا مو أدمين
+  const delIdx = 25;
+  const delCell = cells[delIdx];
+  if (role !== 'admin') delCell.classList.add('hidden');
+  else delCell.classList.remove('hidden');
+}
