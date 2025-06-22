@@ -134,14 +134,22 @@ function addLectureRow(priority, num, teacher, dateTime, room, skipSave = false,
     main.appendChild(td);
   }
 
-  const formatted = new Intl.DateTimeFormat('ar-SY', {
-    dateStyle: 'short', timeStyle: 'short', hour12: false
-  }).format(new Date(dateTime));
-  [formatted, room].forEach(val => {
-    const td = document.createElement('td');
-    td.textContent = val;
-    main.appendChild(td);
-  });
+let formatted = '';
+if (dateTime) {
+  const dt = new Date(dateTime);
+  if (!isNaN(dt.getTime())) {
+    formatted = new Intl.DateTimeFormat('ar-SY', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+      hour12: false
+    }).format(dt);
+  }
+}
+[formatted, room].forEach(val => {
+  const td = document.createElement('td');
+  td.textContent = val;
+  main.appendChild(td);
+});
 
   for (let i = 0; i < 7; i++) main.appendChild(document.createElement('td'));
   main.appendChild(document.createElement('td'));
@@ -259,9 +267,14 @@ function initRealtime() {
       const main = document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
       if (!main) return;
       const cost = main.nextElementSibling;
-      main.children[13].textContent = new Intl.DateTimeFormat('ar-SY', {
-        dateStyle:'short', timeStyle:'short', hour12:false
-      }).format(new Date(doc.recordDate));
+     const dt2 = new Date(doc.recordDate);
+main.children[13].textContent = !isNaN(dt2.getTime())
+  ? new Intl.DateTimeFormat('ar-SY', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+      hour12: false
+    }).format(dt2)
+  : '';
       main.children[14].textContent = doc.recordRoom;
       doc.mainCells.forEach((v,i) => main.children[3+i].textContent = v);
       doc.cellColors.forEach((c,i) => main.children[3+i].style.backgroundColor = c || '');
