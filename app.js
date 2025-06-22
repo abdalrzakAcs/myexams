@@ -409,78 +409,109 @@ function applyPermissionsToRow(main, cost) {
   const last = main.children[cells.length-1];
   last.classList.toggle('hidden', currentRole !== 'admin');
 }
-// 🟢 تفعيل قائمة الألوان أو أسماء الموظفين بناءً على نوع الخلية
-document.addEventListener("contextmenu", (e) => {
-  const td = e.target.closest("td");
-  if (!td || !td.isContentEditable) return;
+/*─────────────────────────────────────────────
+ |  قوائم مخصّصة للحالة والأسماء
+ *────────────────────────────────────────────*/
+
+// ❶ حدد عناوين الأعمدة
+const statusHeaders = [
+  "تنسيق","رفع","إدخال ملف","رفع أسئلة","إدخال أسئلة",
+  "التصوير","مونتاج","إدخال فيديو","تصميم/كتابة","تسويق"
+];
+const nameHeaders   = [
+  "منسق","رافع","مدخل","المصور","ممنتج","الكاتب"
+];
+
+// ❷ استخرج أرقام الأعمدة من الـ <thead>
+const statusCols = [], nameCols = [];
+document.querySelectorAll('#taskTable thead th').forEach((th, idx) => {
+  const txt = th.textContent.trim();
+  if (statusHeaders.includes(txt)) statusCols.push(idx);
+  if (nameHeaders  .includes(txt)) nameCols  .push(idx);
+});
+
+// ❸ بيانات القوائم
+const statusOptions = [
+  { label: "لم يتم التدخل",                 color: ""        },
+  { label: "يتم العمل",                     color: "#fff6a3" },
+  { label: "تم العمل والتدقيق ولم يُسلَّم", color: "#ffd86a" },
+  { label: "منجز",                          color: "#b5f8b1" }
+];
+const employeeNames = ["محمد","أحمد","علي","نور","خالد","منى","هبة"];
+const colorsCycle   = statusOptions.map(o => o.color); // لأزرار اليسار
+
+// ❹ أداة إنشاء قائمة عائمة
+function showMenu(items, x, y, onSelect){
+  const menu = document.createElement('div');
+  menu.className = 'custom-menu';
+  menu.style.cssText = `
+    position:fixed;left:${x}px;top:${y}px;z-index:10000;
+    background:#fff;border:1px solid #ccc;border-radius:8px;
+    box-shadow:0 4px 12px rgba(0,0,0,.15);font-family:Cairo;padding:4px;
+  `;
+  items.forEach(item=>{
+    const row = document.createElement('div');
+    row.textContent = item.label || item;
+    row.style.cssText = `
+      padding:8px 18px;cursor:pointer;white-space:nowrap;
+      background:${item.color || '#fff'};
+    `;
+    row.onmouseover = () => row.style.backgroundColor = '#eee';
+    row.onmouseout  = () => row.style.backgroundColor = item.color || '#fff';
+    row.onclick = ()=>{ onSelect(item); menu.remove(); };
+    menu.appendChild(row);
+  });
+  document.body.appendChild(menu);
+  document.addEventListener('click', ()=>menu.remove(), { once:true });
+}
+
+// ❺ كليك يمين: افتح القائمة المناسبة
+document.addEventListener('contextmenu', e=>{
+  const td = e.target.closest('td');
+  if(!td || !td.isContentEditable) return;
 
   const col = td.cellIndex;
-  const taskCols = [3, 5, 7, 9, 13, 16, 18];  // أعمدة "المهام" (لون + حالة)
-  const nameCols = taskCols.map((i) => i + 1); // الأعمدة التي بعدها = أسماء
-
-  // خيارات الألوان والحالات
-  const statusOptions = [
-    { label: "لم يتم التدخل", color: "" },
-    { label: "يتم العمل", color: "#fff6a3" },
-    { label: "تم العمل والتدقيق ولم يُسلَّم", color: "#ffd86a" },
-    { label: "منجز", color: "#b5f8b1" },
-  ];
-
-  // قائمة الموظفين
-  const employeeNames = ["محمد", "أحمد", "نور", "خالد", "منى", "هبة"];
-
-  // حذف قائمة قديمة
-  document.querySelectorAll(".custom-menu").forEach((el) => el.remove());
-
-  const menu = document.createElement("div");
-  menu.className = "custom-menu";
-  menu.style = `
-    position: fixed;
-    top: ${e.clientY}px;
-    left: ${e.clientX}px;
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,.15);
-    z-index: 9999;
-    overflow: hidden;
-    font-family: "Cairo", sans-serif;
-  `;
-
-  const options = taskCols.includes(col)
-    ? statusOptions
-    : nameCols.includes(col)
-    ? employeeNames.map((name) => ({ label: name }))
-    : [];
-
-  if (!options.length) return;
-
-  options.forEach((opt) => {
-    const item = document.createElement("div");
-    item.textContent = opt.label;
-    item.style = `
-      padding: 10px 20px;
-      cursor: pointer;
-      white-space: nowrap;
-      background: ${opt.color || "white"};
-    `;
-    item.addEventListener("mouseover", () => (item.style.backgroundColor = "#eee"));
-    item.addEventListener("mouseout", () => (item.style.backgroundColor = opt.color || "white"));
-    item.addEventListener("click", () => {
-      td.textContent = opt.label;
-      if (opt.color !== undefined) td.style.backgroundColor = opt.color;
-      td.dispatchEvent(new Event("blur"));
-      menu.remove();
+  if(nameCols.includes(col)){            // قائمة أسماء
+    e.preventDefault();
+    showMenu(employeeNames, e.clientX, e.clientY, name=>{
+      td.textContent = name;
+      td.dispatchEvent(new Event('blur'));
     });
-    menu.appendChild(item);
-  });
-
-  document.body.appendChild(menu);
-  e.preventDefault();
+  }else if(statusCols.includes(col)){    // قائمة الحالة
+    e.preventDefault();
+    showMenu(statusOptions, e.clientX, e.clientY, opt=>{
+      td.textContent = opt.label;
+      td.style.backgroundColor = opt.color;
+      td.dispatchEvent(new Event('blur'));
+    });
+  }
 });
 
-// 🧼 إغلاق القائمة عند الضغط بالخارج
-document.addEventListener("click", () => {
-  document.querySelectorAll(".custom-menu").forEach((el) => el.remove());
+// ❻ كليك يسار على عمود حالة: بدّل اللون
+document.addEventListener('click', e=>{
+  const td = e.target.closest('td');
+  if(!td || !td.isContentEditable) return;
+
+  if(statusCols.includes(td.cellIndex)){
+    const current = td.style.backgroundColor;
+    const rgbHex  = toHex(current);
+    const idx     = colorsCycle.indexOf(rgbHex);
+    const nextCol = colorsCycle[(idx + 1) % colorsCycle.length];
+    const nextLbl = statusOptions[colorsCycle.indexOf(nextCol)].label;
+    td.style.backgroundColor = nextCol;
+    td.textContent           = nextLbl;
+    td.dispatchEvent(new Event('blur'));
+  }
 });
+
+// مساعد لتحويل rgb() إلى ‎#hex
+function toHex(rgb){
+  if(!rgb) return '';
+  if(rgb.startsWith('#')) return rgb.toLowerCase();
+  const res = /^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/.exec(rgb);
+  return res
+    ? "#" + res.slice(1).map(n=>('0'+(+n).toString(16)).slice(-2)).join('')
+    : '';
+}
+
 
