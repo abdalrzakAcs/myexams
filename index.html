@@ -3,501 +3,508 @@
 <head>
   <meta charset="UTF-8" />
   <title>إدارة مهام My Exams</title>
+
+  <!-- خط كايرو -->
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- ====== الأنماط العامة ====== -->
   <style>
     :root{
-      --primary:#0069d9;--primary-hover:#0053b3;--light-bg:#f5f7fa;
-      --card-bg:#ffffff;--border:#dfe3e8;--text-dark:#212529;
-      --shadow:0 6px 24px rgba(0,0,0,.08);--danger:#dc3545;
+      --primary:#0069d9;         --primary-hover:#0053b3;
+      --light-bg:#f5f7fa;        --card-bg:#ffffff;
+      --border:#dfe3e8;          --text-dark:#212529;
+      --shadow:0 6px 24px rgba(0,0,0,.08);
+      --danger:#dc3545;
     }
     *{box-sizing:border-box;font-family:"Cairo",sans-serif;transition:.3s}
     body{margin:0;padding:32px 16px;background:var(--light-bg);color:var(--text-dark)}
-    h2{text-align:center;margin-bottom:32px;font:700 2.2rem/1 "Cairo";color:var(--primary);text-shadow:0 2px 4px rgba(0,0,0,.1)}
-    .login-box{max-width:420px;margin:0 auto 40px;background:#fff;padding:28px;border-radius:20px;box-shadow:var(--shadow);text-align:center}
-    .login-box input,.login-box button{width:100%;padding:14px;margin:12px 0;border:1px solid var(--border);border-radius:10px;font-size:1rem}
-    .login-box button{background:var(--primary);color:#fff;font-weight:700;cursor:pointer;box-shadow:0 3px 12px rgba(0,105,217,.3)}
+    h2{margin:0 0 32px;text-align:center;font:700 2.2rem/1 "Cairo";
+       color:var(--primary);text-shadow:0 2px 4px rgba(0,0,0,.1)}
+
+    /* صندوق الدخول */
+    .login-box{
+      max-width:420px;margin:0 auto 40px;background:#fff;padding:28px;border-radius:20px;
+      box-shadow:var(--shadow);text-align:center
+    }
+    .login-box input,.login-box button{
+      width:100%;padding:14px;margin:12px 0;border:1px solid var(--border);
+      border-radius:10px;font-size:1rem
+    }
+    .login-box button{
+      background:var(--primary);color:#fff;font-weight:700;cursor:pointer;
+      box-shadow:0 3px 12px rgba(0,105,217,.3)
+    }
     .login-box button:hover{background:var(--primary-hover);transform:scale(1.05)}
-    #taskForm{display:none;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px;max-width:1150px;margin:0 auto;background:var(--card-bg);padding:36px;border-radius:20px;box-shadow:var(--shadow);align-items:end}
+
+    /* نموذج إضافة المهمة */
+    #taskForm{
+      display:none;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+      gap:20px;max-width:1150px;margin:0 auto;background:var(--card-bg);
+      padding:36px;border-radius:20px;box-shadow:var(--shadow);align-items:end
+    }
     #taskForm label{display:flex;flex-direction:column;font-weight:600;gap:8px}
-    #taskForm input,#taskForm select,#taskForm button{padding:14px 16px;border:1px solid var(--border);border-radius:12px;font-size:1rem}
+    #taskForm input,#taskForm select,#taskForm button{
+      padding:14px 16px;border:1px solid var(--border);border-radius:12px;font-size:1rem
+    }
     #taskForm button{background:var(--primary);color:#fff;font-weight:700;cursor:pointer}
     #taskForm button:hover{background:var(--primary-hover);transform:scale(1.04)}
-    .table-wrapper{max-width:100%;max-height:70vh;overflow:auto;margin-top:48px;border-radius:20px;box-shadow:var(--shadow);background:var(--card-bg)}
+
+    /* الجدول */
+    .table-wrapper{
+      max-width:100%;max-height:70vh;overflow:auto;margin-top:48px;
+      border-radius:20px;box-shadow:var(--shadow);background:var(--card-bg)
+    }
     table{width:100%;min-width:1350px;border-collapse:collapse}
     thead th{position:sticky;top:0;background:#e9ecef;font-weight:bold;padding:16px 0}
-    th,td{padding:12px 10px;border:1px solid var(--border);text-align:center;font-size:.9rem;white-space:nowrap}
+    th,td{padding:12px 10px;border:1px solid var(--border);text-align:center;
+          font-size:.9rem;white-space:nowrap}
     tr:nth-child(even){background:#fdfdfd}
     tr:hover:not(.accounting-row){background:#f1f5f8}
     .accounting-row td{background:#fffde7;font-weight:bold}
-    .total-summary{margin-top:20px;max-width:1150px;background:#fff;padding:20px;border-radius:16px;box-shadow:var(--shadow);font-size:1.1rem;display:flex;justify-content:space-between;align-items:center}
-    .context-menu-color{animation:fadeIn .12s ease-out;border-radius:8px}
-    @keyframes fadeIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+
+    /* ملخص الكلفة */
+    .total-summary{
+      margin-top:20px;max-width:1150px;background:#fff;padding:20px;border-radius:16px;
+      box-shadow:var(--shadow);font-size:1.1rem;display:flex;justify-content:space-between;
+      align-items:center
+    }
+
+    /* تصنيفات إضافية */
     .hidden{display:none!important}
   </style>
 </head>
 <body>
-<div style="text-align:center;margin-bottom:20px">
-  <p style="font-size:1.8rem;font-weight:bold;color:#0069d9;margin:0;text-shadow:0 2px 4px rgba(0,0,0,.1)">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيمِ</p>
-</div>
 
-<h2>قائمة المهام لمشروع My Exams</h2>
-<!-- صندوق الدخول -->
-<div class="login-box" id="loginBox">
-  <input type="password" id="adminPass" placeholder="أدخل كلمة المرور" />
-  <button type="button" onclick="checkLogin()">دخول</button>
-</div>
+  <!-- بسملة -->
+  <p style="text-align:center;font-size:1.8rem;font-weight:bold;color:#0069d9;
+            margin:0 0 20px;text-shadow:0 2px 4px rgba(0,0,0,.1)">
+    بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيمِ
+  </p>
 
-<!-- نموذج إضافة درس -->
-<form id="taskForm">
-  <label><input type="checkbox" id="priorityFlag" /> أولوية</label>
-  <label>رقم المحاضرة<input type="text" id="sessionNumber" required/></label>
-  <label>اسم الأستاذ<input type="text" id="teacherName" required/></label>
-  <label>تاريخ/ساعة التصوير
-    <input type="datetime-local" id="recordDateTime" required/>
-  </label>
-  <label>القاعة
-    <select id="recordRoom" required>
-      <option value="1">1</option>
-      <option value="2">2</option>
-      <option value="3">3</option>
-    </select>
-  </label>
-  <button type="button" id="addBtn">إضافة</button>
-</form>
+  <h2>قائمة المهام لمشروع My Exams</h2>
 
-<!-- زر تحديث -->
-<div style="text-align:center;margin-top:8px">
-  <button id="refreshBtn" style="padding:8px 18px;border:none;border-radius:10px;background:var(--primary);color:#fff;font-weight:600;cursor:pointer;display:none">🔄 تحديث</button>
-</div>
+  <!-- ====== شاشة الدخول ====== -->
+  <div class="login-box" id="loginBox">
+    <input type="password" id="adminPass" placeholder="أدخل كلمة المرور" />
+    <button type="button" onclick="checkLogin()">دخول</button>
+  </div>
 
-<!-- الجدول -->
-<div class="table-wrapper">
-  <table id="taskTable">
-    <thead>
-      <tr>
-        <th>الأولوية</th><th>رقم</th><th>الأستاذ</th>
-        <th>تنسيق</th><th>منسق</th><th>رفع</th><th>رافع</th>
-        <th>إدخال ملف</th><th>مدخل</th><th>رفع أسئلة</th><th>رافع</th>
-        <th>إدخال أسئلة</th><th>مدخل</th><th>التصوير</th><th>القاعة</th><th>المصور</th>
-        <th>مونتاج</th><th>ممنتج</th><th>إدخال فيديو</th><th>مدخل</th>
-        <th>تصميم/كتابة</th><th>الكاتب</th><th>تسويق</th>
-        <th>الكلفة</th><th>حذف</th>
-      </tr>
-    </thead>
-    <tbody id="tableBody"></tbody>
-  </table>
-</div>
+  <!-- ====== نموذج إضافة درس ====== -->
+  <form id="taskForm">
+    <label><input type="checkbox" id="priorityFlag" /> أولوية</label>
+    <label>رقم المحاضرة <input type="text" id="sessionNumber" required /></label>
+    <label>اسم الأستاذ <input type="text" id="teacherName" required /></label>
+    <label>تاريخ/ساعة التصوير
+      <input type="datetime-local" id="recordDateTime" required />
+    </label>
+    <label>القاعة
+      <select id="recordRoom" required>
+        <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+      </select>
+    </label>
+    <button type="button" id="addBtn">إضافة</button>
+  </form>
 
-<!-- الملخص -->
-<div class="total-summary" id="summaryBox" style="display:none">
-  <span>💰 <strong>إجمالي الكلفة:</strong> <span id="totalCost">0</span> ل.س</span>
-  <span id="offlineBadge" class="hidden" style="color:var(--danger);font-weight:bold">🚫 أوفلاين</span>
-</div>
-<!-- Appwrite CDN -->
-<script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.0/dist/appwrite.min.js"></script>
-<script>
-/* ========== إعداد Appwrite ========== */
-const { Client, Databases, Account, ID } = Appwrite;
-const client = new Client().setEndpoint('https://fra.cloud.appwrite.io/v1').setProject('66cf3db2002471686c6f');
-const account   = new Account(client);
-const databases = new Databases(client);
-const databaseId = '68136c4cee33221deb0f';
-const collectionId = 'tasks';
+  <!-- زر التحديث -->
+  <div style="text-align:center;margin-top:8px">
+    <button id="refreshBtn"
+            style="padding:8px 18px;border:none;border-radius:10px;
+                   background:var(--primary);color:#fff;font-weight:600;cursor:pointer;display:none">
+      🔄 تحديث
+    </button>
+  </div>
 
-/* ========== عناصر DOM ========== */
-const adminPass = document.getElementById('adminPass');
-const addBtn = document.getElementById('addBtn');
-const refreshBtn = document.getElementById('refreshBtn');
-const loginBox = document.getElementById('loginBox');
-const taskForm = document.getElementById('taskForm');
-const summaryBox = document.getElementById('summaryBox');
-const tableBodyEl = document.getElementById('tableBody');
-const totalCost = document.getElementById('totalCost');
-const offlineBadge = document.getElementById('offlineBadge');
+  <!-- ====== جدول المهام ====== -->
+  <div class="table-wrapper">
+    <table id="taskTable">
+      <thead>
+        <tr>
+          <th>الأولوية</th><th>رقم</th><th>الأستاذ</th>
+          <th>تنسيق</th><th>منسق</th><th>رفع</th><th>رافع</th>
+          <th>إدخال ملف</th><th>مدخل</th><th>رفع أسئلة</th><th>رافع</th>
+          <th>إدخال أسئلة</th><th>مدخل</th><th>التصوير</th><th>القاعة</th><th>المصور</th>
+          <th>مونتاج</th><th>ممنتج</th><th>إدخال فيديو</th><th>مدخل</th>
+          <th>تصميم/كتابة</th><th>الكاتب</th><th>تسويق</th>
+          <th>الكلفة</th><th>حذف</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
 
-const priorityFlag = document.getElementById('priorityFlag');
-const sessionNumber = document.getElementById('sessionNumber');
-const teacherName = document.getElementById('teacherName');
-const recordDateTime = document.getElementById('recordDateTime');
-const recordRoom = document.getElementById('recordRoom');
+  <!-- ملخص الكلفة -->
+  <div class="total-summary" id="summaryBox" style="display:none">
+    <span>💰 <strong>إجمالي الكلفة:</strong> <span id="totalCost">0</span> ل.س</span>
+    <span id="offlineBadge" class="hidden" style="color:var(--danger);font-weight:bold">🚫 أوفلاين</span>
+  </div>
 
-/* ========== صلاحيات ========== */
-const PASSWORDS = {
-  admin:'Admin12', accountant:'account123',
-  coordinator:'design123', entry:'entry123', cameraman:'photo123', montage:'edit123',
-  media:'social123', marketing:'market123'
-};
-let currentRole='guest';
+  <!-- ====== مكتبة Appwrite ====== -->
+  <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.0/dist/appwrite.min.js"></script>
 
-/* الأعمدة المسموحة لكل دور */
-const roleCols = {
-  admin:'all',
-  accountant:'all',
-  coordinator:[0,1,2,3,4,7,25],
-  entry:[0,1,2,7,8,11,12,18,19],
-  cameraman:[0,1,2,13,14],
-  montage:[0,1,2,13,16,17],
-  media:[0,1,2,7,11,18],
-  marketing:[22]
-};
-/* الأعمدة التي يمكن تعديلها لكل دور (غير الأدمين) */
-const editableByRole = {
-  coordinator:[3,4,7],
-  entry:[7,8,11,12,18,19],
-  cameraman:[],
-  montage:[16,17],
-  media:[7,11,18],
-  marketing:[22]
-};
+  <!-- ====== سكربت التطبيق ====== -->
+  <script>
+    /* كل الكود ينتظر تحميل الـ DOM */
+    window.addEventListener('DOMContentLoaded', () => {
 
-/* ========== تسجيل الدخول ========== */
-function checkLogin(){
-  const pass = adminPass.value.trim();
-  for(const [role,pwd] of Object.entries(PASSWORDS)){
-    if(pass===pwd){currentRole=role;break;}
-  }
-  if(currentRole==='guest') return alert('كلمة المرور غير صحيحة');
+      /* إعداد Appwrite */
+      const { Client, Databases, Account, ID } = Appwrite;
+      const client     = new Client().setEndpoint('https://fra.cloud.appwrite.io/v1')
+                                     .setProject('66cf3db2002471686c6f');
+      const account    = new Account(client);
+      const databases  = new Databases(client);
+      const databaseId   = '68136c4cee33221deb0f';
+      const collectionId = 'tasks';
 
-  loginBox.style.display='none';
-  taskForm.style.display = currentRole==='admin'? 'grid':'none';
-  addBtn.style.display = currentRole==='admin'?'inline-block':'none';
-  summaryBox.style.display='flex';
-  refreshBtn.style.display='inline-block';
+      /* عناصر DOM */
+      const el = id => document.getElementById(id);
+      const adminPass    = el('adminPass');
+      const addBtn       = el('addBtn');
+      const refreshBtn   = el('refreshBtn');
+      const loginBox     = el('loginBox');
+      const taskForm     = el('taskForm');
+      const summaryBox   = el('summaryBox');
+      const tableBodyEl  = el('tableBody');
+      const totalCostEl  = el('totalCost');
+      const offlineBadge = el('offlineBadge');
 
-  account.get().then(()=>loadFromAppwrite()).catch(()=>{
-    account.createAnonymousSession().then(loadFromAppwrite).catch(console.error);
-  });
+      const priorityFlag  = el('priorityFlag');
+      const sessionNumber = el('sessionNumber');
+      const teacherName   = el('teacherName');
+      const recordDateTime= el('recordDateTime');
+      const recordRoom    = el('recordRoom');
 
-  setInterval(()=>{
-    databases.listDocuments(databaseId,collectionId,[],1,0).catch(()=>{});
-  },10000);
-}
-/* ========== إضافة صف جديد ========== */
-addBtn.addEventListener('click', async () => {
-  const priority = priorityFlag.checked ? '✅' : '❌';
-  const lectureNum = sessionNumber.value.trim();
-  const teacher = teacherName.value.trim();
-  const dateTime = recordDateTime.value;
-  if (!lectureNum || !teacher || !dateTime) return alert('الرجاء ملء جميع الحقول');
-  const room = recordRoom.value;
-  const emptyCells = Array(10).fill('');
-  const payload = {
-    priority,
-    lectureNumber: lectureNum,
-    teacherName: teacher,
-    recordDate: new Date(dateTime).toISOString(),
-    recordRoom: room,
-    mainCells: emptyCells,
-    cellColors: emptyCells,
-    costs: emptyCells,
-    totalCost: ''
-  };
-  try {
-    const doc = await databases.createDocument(databaseId, collectionId, ID.unique(), payload);
-    addLectureRow(priority, lectureNum, teacher, dateTime, room, true, doc.$id);
-    taskForm.reset(); sortTable();
-  } catch (e) {
-    console.error(e);
-    alert('حصل خطأ أثناء الحفظ!');
-  }
-});
+      /* صلاحيات تسجيل الدخول */
+      const PASSWORDS = {
+        admin:'Admin12', accountant:'account123',
+        coordinator:'design123', entry:'entry123',
+        cameraman:'photo123', montage:'edit123',
+        media:'social123', marketing:'market123'
+      };
+      let currentRole = 'guest';
 
-/* ========== إنشاء صفّي البيانات والكلفة ========== */
-function addLectureRow(priority, num, teacher, dateTime, room, skipSave = false, docId = null) {
-  const main = document.createElement('tr');
-  const cost = document.createElement('tr');
-  cost.classList.add('accounting-row');
-  if (docId) {
-    main.dataset.docId = cost.dataset.docId = docId;
-  }
+      /* صلاحيات الأعمدة */
+      const roleCols = {
+        admin:'all', accountant:'all',
+        coordinator:[0,1,2,3,4,7,25],
+        entry:[0,1,2,7,8,11,12,18,19],
+        cameraman:[0,1,2,13,14],
+        montage:[0,1,2,13,16,17],
+        media:[0,1,2,7,11,18],
+        marketing:[22]
+      };
+      const editableByRole = {
+        coordinator:[3,4,7],
+        entry:[7,8,11,12,18,19],
+        montage:[16,17],
+        media:[7,11,18],
+        marketing:[22]
+      };
 
-  [priority, num, teacher].forEach(v => {
-    const td = document.createElement('td');
-    td.textContent = v;
-    main.appendChild(td);
-  });
+      /* ====== تسجيل الدخول ====== */
+      window.checkLogin = function () {
+        const pass = adminPass.value.trim();
+        for (const [role, pwd] of Object.entries(PASSWORDS)){
+          if (pass === pwd){ currentRole = role; break; }
+        }
+        if (currentRole === 'guest') return alert('كلمة المرور غير صحيحة');
 
-  // 10 خلايا الرئيسية (تنسيق، رافع، مدخل، ...إلخ)
-  for (let i = 0; i < 10; i++) {
-    const td = document.createElement('td');
-    td.contentEditable = true;
-    td.style.direction = 'rtl';
-    main.appendChild(td);
-  }
+        loginBox.style.display = 'none';
+        taskForm.style.display = currentRole === 'admin' ? 'grid' : 'none';
+        addBtn.style.display   = currentRole === 'admin' ? 'inline-block' : 'none';
+        summaryBox.style.display = 'flex';
+        refreshBtn.style.display = 'inline-block';
 
-  const formatted = Intl.DateTimeFormat('ar-SY', {
-    dateStyle: 'short',
-    timeStyle: 'short',
-    hour12: false
-  }).format(new Date(dateTime));
-  const dtd = document.createElement('td');
-  dtd.textContent = formatted;
-  main.appendChild(dtd);
+        /* محاولة إنشاء/استرجاع جلسة */
+        account.get()
+          .then(loadFromAppwrite)
+          .catch(() => account.createAnonymousSession()
+                              .then(loadFromAppwrite)
+                              .catch(console.error));
 
-  const rtd = document.createElement('td');
-  rtd.textContent = room;
-  main.appendChild(rtd);
+        /* فحص اتصال كل 10 ثواني */
+        setInterval(() =>
+          databases.listDocuments(databaseId, collectionId, [], 1, 0).catch(()=>{}),
+          10000
+        );
+      };
 
-  // المصور + مونتاج + إدخالات + حذف
-  for (let i = 0; i < 7; i++) main.appendChild(document.createElement('td'));
-  main.appendChild(document.createElement('td')); // عمود إضافي للكلفة أو حذف لاحقاً
-  const del = document.createElement('td');
-  del.innerHTML = '✖';
-  del.style = "cursor:pointer;color:var(--danger);font-weight:bold;font-size:1.2rem";
-  del.onclick = () => deleteRow(main, cost);
-  main.appendChild(del);
+      /* ====== إضافة صف جديد ====== */
+      addBtn.addEventListener('click', async () => {
+        const priority  = priorityFlag.checked ? '✅' : '❌';
+        const lecture   = sessionNumber.value.trim();
+        const teacher   = teacherName.value.trim();
+        const dateTime  = recordDateTime.value;
+        if (!lecture || !teacher || !dateTime)
+          return alert('الرجاء ملء جميع الحقول');
 
-  // صف الكلفة
-  for (let i = 0; i < 3; i++) cost.appendChild(document.createElement('td'));
-  for (let i = 0; i < 10; i++) {
-    const td = document.createElement('td');
-    td.contentEditable = true;
-    td.classList.add('cost-input');
-    cost.appendChild(td);
-  }
-  for (let i = 0; i < 10; i++) cost.appendChild(document.createElement('td'));
-  const totalCell = document.createElement('td');
-  totalCell.classList.add('total-cell');
-  cost.appendChild(totalCell);
-  cost.appendChild(document.createElement('td')); // للحذف
+        const room      = recordRoom.value;
+        const empty10   = Array(10).fill('');
+        const payload   = {
+          priority,
+          lectureNumber : lecture,
+          teacherName   : teacher,
+          recordDate    : new Date(dateTime).toISOString(),
+          recordRoom    : room,
+          mainCells     : empty10,
+          cellColors    : empty10,
+          costs         : empty10,
+          totalCost     : ''
+        };
 
-  tableBodyEl.appendChild(main);
-  tableBodyEl.appendChild(cost);
+        try{
+          const doc = await databases.createDocument(
+            databaseId, collectionId, ID.unique(), payload
+          );
+          addLectureRow(priority, lecture, teacher, dateTime, room, true, doc.$id);
+          taskForm.reset(); sortTable();
+        }catch(e){ console.error(e); alert('حصل خطأ أثناء الحفظ!'); }
+      });
 
-  [...main.querySelectorAll('td[contenteditable]'),
-   ...cost.querySelectorAll('td[contenteditable]')]
-    .forEach(td => td.addEventListener('blur', () => syncRowUpdate(main, cost)));
+      /* ====== إنشاء صفّين: بيانات + كلفة ====== */
+      function addLectureRow(priority, num, teacher, dateTime, room,
+                             skipSave = false, docId = null){
+        const main = document.createElement('tr');
+        const cost = document.createElement('tr');
+        cost.classList.add('accounting-row');
+        if (docId){ main.dataset.docId = cost.dataset.docId = docId; }
 
-  if (!skipSave) saveRowToAppwrite(main, cost, dateTime, room);
-  applyPermissionsToRow(main, cost);
-}
+        /* الأعمدة الثلاثة الأولى */
+        [priority, num, teacher].forEach(v=>{
+          const td = document.createElement('td'); td.textContent = v; main.appendChild(td);
+        });
 
-/* حذف صف */
-function deleteRow(main, cost) {
-  if (currentRole !== 'admin') return;
-  const id = main.dataset.docId;
-  tableBodyEl.removeChild(main);
-  tableBodyEl.removeChild(cost);
-  calculateSummary();
-  if (id) databases.deleteDocument(databaseId, collectionId, id).catch(console.error);
-}
-/* ========== تحديث صف ========== */
-function syncRowUpdate(main, cost) {
-  if (!navigator.onLine) {
-    pushToQueue('update', {
-      id: main.dataset.docId,
-      data: collectRowData(main, cost)
-    });
-    return;
-  }
+        /* 10 خلايا رئيسية قابلة للتعديل */
+        for (let i=0;i<10;i++){
+          const td = document.createElement('td');
+          td.contentEditable = true; td.style.direction = 'rtl';
+          main.appendChild(td);
+        }
 
-  updateRowTotal(cost);
-  if (currentRole === 'accountant') return; // المحاسب ما بيعدل شي
+        /* تاريخ + قاعة */
+        const formatted = Intl.DateTimeFormat('ar-SY',{dateStyle:'short',timeStyle:'short',hour12:false})
+                          .format(new Date(dateTime));
+        [''+formatted, room].forEach(text=>{
+          const td = document.createElement('td'); td.textContent = text; main.appendChild(td);
+        });
 
-  databases.updateDocument(databaseId, collectionId, main.dataset.docId, collectRowData(main, cost)).catch(console.error);
-  sortTable();
-}
+        /* أعمدة إضافية فارغة + حذف */
+        for (let i=0;i<7;i++) main.appendChild(document.createElement('td'));
+        main.appendChild(document.createElement('td')); // للكلفة (Placeholder)
 
-/* ========== تجميع بيانات الصف لتحديثها ========== */
-function collectRowData(main, cost) {
-  const m = main.querySelectorAll('td');
-  const c = cost.querySelectorAll('td.cost-input');
-  return {
-    priority: m[0].textContent,
-    lectureNumber: m[1].textContent,
-    teacherName: m[2].textContent,
-    recordDate: m[13].textContent,
-    recordRoom: m[14].textContent,
-    mainCells: [...m].slice(3, 13).map(td => td.textContent),
-    cellColors: [...m].slice(3, 13).map(td => td.style.backgroundColor || ''),
-    costs: [...c].map(td => td.textContent),
-    totalCost: cost.querySelector('.total-cell').textContent
-  };
-}
+        const del = document.createElement('td');
+        del.innerHTML = '✖';
+        del.style = 'cursor:pointer;color:var(--danger);font-weight:bold;font-size:1.2rem';
+        del.onclick = () => deleteRow(main,cost);
+        main.appendChild(del);
 
-/* ========== تحميل المهام من Appwrite ========== */
-function loadFromAppwrite() {
-  databases.listDocuments(databaseId, collectionId).then(({ documents }) => {
-    tableBodyEl.innerHTML = '';
-    documents.forEach(doc =>
-      addLectureRow(doc.priority, doc.lectureNumber, doc.teacherName, doc.recordDate, doc.recordRoom, true, doc.$id)
-    );
-    calculateSummary();
-    sortTable();
-    applyPermissions();
-    initRealtimeOnce();
-  }).catch(console.error);
-}
+        /* صف الكلفة */
+        for (let i=0;i<3;i++) cost.appendChild(document.createElement('td'));
+        for (let i=0;i<10;i++){
+          const td = document.createElement('td');
+          td.contentEditable = true; td.classList.add('cost-input');
+          cost.appendChild(td);
+        }
+        for (let i=0;i<10;i++) cost.appendChild(document.createElement('td'));
+        const totalCell = document.createElement('td');
+        totalCell.classList.add('total-cell'); cost.appendChild(totalCell);
+        cost.appendChild(document.createElement('td')); // للحذف (نفس العمود)
 
-/* ========== تحديث مباشر (Realtime) ========== */
-let realtimeStarted = false;
-function initRealtimeOnce() {
-  if (realtimeStarted) return;
-  initRealtime();
-  realtimeStarted = true;
-}
+        tableBodyEl.append(main,cost);
 
-function initRealtime() {
-  const channel = `databases.${databaseId}.collections.${collectionId}.documents`;
-  client.subscribe(channel, res => {
-    const event = res.event || res.events?.[0] || '';
-    const doc = res.payload || {};
+        /* أحداث الحفظ */
+        [...main.querySelectorAll('td[contenteditable]'),
+         ...cost.querySelectorAll('td[contenteditable]')]
+           .forEach(td => td.addEventListener('blur', ()=>syncRowUpdate(main,cost)));
 
-    if (event.endsWith('.create')) {
-      if (document.querySelector(`tr[data-doc-id="${doc.$id}"]`)) return;
-      addLectureRow(doc.priority, doc.lectureNumber, doc.teacherName, doc.recordDate, doc.recordRoom, true, doc.$id);
-      sortTable();
-    } else if (event.endsWith('.update')) {
-      const main = document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
-      if (!main) return;
-      const cost = main.nextElementSibling;
-      main.children[13].textContent = Intl.DateTimeFormat('ar-SY', { dateStyle: 'short', timeStyle: 'short', hour12: false }).format(new Date(doc.recordDate));
-      main.children[14].textContent = doc.recordRoom;
-      doc.mainCells.forEach((v, i) => main.children[3 + i].textContent = v);
-      doc.cellColors.forEach((clr, i) => main.children[3 + i].style.backgroundColor = clr || '');
-      cost.querySelectorAll('td.cost-input').forEach((td, i) => td.textContent = doc.costs[i] || '');
-      cost.querySelector('.total-cell').textContent = doc.totalCost || '';
-      calculateSummary();
-      sortTable();
-    } else if (event.endsWith('.delete')) {
-      const main = document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
-      if (main) {
-        const cost = main.nextElementSibling;
-        main.remove();
-        cost.remove();
+        if(!skipSave) saveRowToAppwrite(main,cost,dateTime,room);
+        applyPermissionsToRow(main,cost);
+      }
+
+      /* حذف صف */
+      function deleteRow(main,cost){
+        if(currentRole!=='admin') return;
+        const id = main.dataset.docId;
+        main.remove(); cost.remove(); calculateSummary();
+        if(id) databases.deleteDocument(databaseId, collectionId, id).catch(console.error);
+      }
+
+      /* تحديث صف */
+      function syncRowUpdate(main,cost){
+        if(!navigator.onLine){
+          pushToQueue('update',{id:main.dataset.docId,data:collectRowData(main,cost)});
+          return;
+        }
+        updateRowTotal(cost);
+        if(currentRole==='accountant') return;
+        databases.updateDocument(databaseId, collectionId,
+                                 main.dataset.docId, collectRowData(main,cost))
+                 .catch(console.error);
+        sortTable();
+      }
+
+      /* تجميع بيانات الصف */
+      function collectRowData(main,cost){
+        const m = main.querySelectorAll('td');
+        const c = cost.querySelectorAll('td.cost-input');
+        return {
+          priority    : m[0].textContent,
+          lectureNumber:m[1].textContent,
+          teacherName : m[2].textContent,
+          recordDate  : m[13].textContent,
+          recordRoom  : m[14].textContent,
+          mainCells   : [...m].slice(3,13).map(td=>td.textContent),
+          cellColors  : [...m].slice(3,13).map(td=>td.style.backgroundColor||''),
+          costs       : [...c].map(td=>td.textContent),
+          totalCost   : cost.querySelector('.total-cell').textContent
+        };
+      }
+
+      /* تحميل المهام */
+      function loadFromAppwrite(){
+        databases.listDocuments(databaseId, collectionId)
+          .then(({documents})=>{
+            tableBodyEl.innerHTML='';
+            documents.forEach(doc=>addLectureRow(
+              doc.priority, doc.lectureNumber, doc.teacherName,
+              doc.recordDate, doc.recordRoom, true, doc.$id
+            ));
+            calculateSummary(); sortTable(); applyPermissions(); initRealtimeOnce();
+          }).catch(console.error);
+      }
+
+      /* Realtime */
+      let realtimeStarted=false;
+      function initRealtimeOnce(){ if(!realtimeStarted){ initRealtime(); realtimeStarted=true; } }
+      function initRealtime(){
+        const channel = `databases.${databaseId}.collections.${collectionId}.documents`;
+        client.subscribe(channel,res=>{
+          const ev  = res.event||res.events?.[0]||''; const doc=res.payload||{};
+          if(ev.endsWith('.create')){
+            if(document.querySelector(`tr[data-doc-id="${doc.$id}"]`)) return;
+            addLectureRow(doc.priority,doc.lectureNumber,doc.teacherName,
+                          doc.recordDate,doc.recordRoom,true,doc.$id);
+            sortTable();
+          }else if(ev.endsWith('.update')){
+            const main=document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
+            if(!main) return;
+            const cost=main.nextElementSibling;
+            main.children[13].textContent = Intl.DateTimeFormat('ar-SY',
+              {dateStyle:'short',timeStyle:'short',hour12:false})
+              .format(new Date(doc.recordDate));
+            main.children[14].textContent = doc.recordRoom;
+            doc.mainCells .forEach((v,i)=>main.children[3+i].textContent=v);
+            doc.cellColors.forEach((c,i)=>main.children[3+i].style.backgroundColor=c||'');
+            cost.querySelectorAll('.cost-input').forEach((td,i)=>td.textContent=doc.costs[i]||'');
+            cost.querySelector('.total-cell').textContent = doc.totalCost||'';
+            calculateSummary(); sortTable();
+          }else if(ev.endsWith('.delete')){
+            const main=document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
+            if(main){ const cost=main.nextElementSibling; main.remove(); cost.remove(); calculateSummary(); }
+          }
+        });
+      }
+
+      /* كلفة كل صف + الملخص */
+      function updateRowTotal(costRow){
+        let sum=0;
+        costRow.querySelectorAll('.cost-input').forEach(c=>{
+          const v=parseFloat(c.textContent.replace(/,/g,''));
+          if(!isNaN(v)) sum+=v;
+        });
+        costRow.querySelector('.total-cell').textContent = sum?sum.toLocaleString():'';
         calculateSummary();
       }
-    }
-  });
-}
-
-/* ========== حساب مجموع الكلفة ========== */
-function updateRowTotal(costRow) {
-  let sum = 0;
-  costRow.querySelectorAll('td.cost-input').forEach(c => {
-    const v = parseFloat(c.textContent.replace(/,/g, ''));
-    if (!isNaN(v)) sum += v;
-  });
-  costRow.querySelector('.total-cell').textContent = sum ? sum.toLocaleString() : '';
-  calculateSummary();
-}
-
-function calculateSummary() {
-  let total = 0;
-  document.querySelectorAll('.total-cell').forEach(c => {
-    const v = parseFloat(c.textContent.replace(/,/g, ''));
-    if (!isNaN(v)) total += v;
-  });
-  totalCost.textContent = total.toLocaleString();
-}
-
-/* ========== ترتيب الصفوف حسب الأولوية والتاريخ ========== */
-function sortTable() {
-  const body = tableBodyEl;
-  const pairs = [];
-  for (let i = 0; i < body.children.length; i += 2) {
-    const main = body.children[i];
-    const cost = body.children[i + 1];
-    const prio = main.children[0].textContent === '✅' ? 0 : 1;
-    const dateText = main.children[13]?.textContent.trim() || '2100-01-01 00:00';
-    const date = new Date(dateText.replace(/[\u200f\u200e]/g, '')).getTime();
-    pairs.push({ main, cost, prio, date });
-  }
-  pairs.sort((a, b) => a.prio - b.prio || a.date - b.date);
-  pairs.forEach(p => {
-    body.appendChild(p.main);
-    body.appendChild(p.cost);
-  });
-}
-/* ---------- دعم الأوفلاين ---------- */
-const localQueueKey = 'myExamsQueue_v1';
-
-function pushToQueue(action, payload){
-  const q = JSON.parse(localStorage.getItem(localQueueKey) || '[]');
-  q.push({ action, payload });
-  localStorage.setItem(localQueueKey, JSON.stringify(q));
-}
-
-async function flushQueue(){
-  if (!navigator.onLine) return;
-  const q = JSON.parse(localStorage.getItem(localQueueKey) || '[]');
-  if (!q.length) return;
-
-  for (const item of q){
-    try{
-      if(item.action === 'update'){
-        await databases.updateDocument(databaseId, collectionId, item.payload.id, item.payload.data);
+      function calculateSummary(){
+        let total=0;
+        document.querySelectorAll('.total-cell').forEach(c=>{
+          const v=parseFloat(c.textContent.replace(/,/g,''));
+          if(!isNaN(v)) total+=v;
+        });
+        totalCostEl.textContent = total.toLocaleString();
       }
-      // لو احتجت دعم create أو delete أضف حالات هنا
-    }catch(e){ console.error('Sync error', e); return; }
-  }
-  localStorage.removeItem(localQueueKey);
-}
 
-window.addEventListener('online', ()=>{ offlineBadge.classList.add('hidden'); flushQueue(); });
-window.addEventListener('offline', ()=> offlineBadge.classList.remove('hidden'));
-if(!navigator.onLine) offlineBadge.classList.remove('hidden');
+      /* ترتيب الصفوف */
+      function sortTable(){
+        const pairs=[];
+        for(let i=0;i<tableBodyEl.children.length;i+=2){
+          const main=tableBodyEl.children[i], cost=tableBodyEl.children[i+1];
+          const prio=main.children[0].textContent==='✅'?0:1;
+          const dt  =main.children[13]?.textContent.trim()||'2100-01-01 00:00';
+          const time=new Date(dt.replace(/[\u200f\u200e]/g,'')).getTime();
+          pairs.push({main,cost,prio,time});
+        }
+        pairs.sort((a,b)=>a.prio-b.prio||a.time-b.time)
+             .forEach(p=>tableBodyEl.append(p.main,p.cost));
+      }
 
-/* ========== تطبيق صلاحيات كل حساب ========== */
-function applyPermissions() {
-  const allTrs = [...tableBodyEl.querySelectorAll('tr'), document.querySelector('#taskTable thead tr')];
-  allTrs.forEach(tr => applyPermissionsToRow(tr, tr.nextElementSibling?.classList.contains('accounting-row') ? tr.nextElementSibling : null));
-}
-function saveRowToAppwrite(main, cost, dateTime, room){
-  const m = main.querySelectorAll('td');
-  const c = cost.querySelectorAll('td.cost-input');
-  const data = {
-    priority: m[0].textContent,
-    lectureNumber: m[1].textContent,
-    teacherName: m[2].textContent,
-    recordDate: new Date(dateTime).toISOString(),
-    recordRoom: room,
-    mainCells: [...m].slice(3,13).map(td=>td.textContent),
-    cellColors: [...m].slice(3,13).map(td=>td.style.backgroundColor || ''),
-    costs: [...c].map(td=>td.textContent),
-    totalCost: cost.querySelector('.total-cell').textContent
-  };
-  databases.createDocument(databaseId, collectionId, ID.unique(), data)
-    .then(doc => { main.dataset.docId = cost.dataset.docId = doc.$id; })
-    .catch(console.error);
-}
+      /* دعم Offline */
+      const localQueueKey='myExamsQueue_v1';
+      function pushToQueue(action,payload){
+        const q=JSON.parse(localStorage.getItem(localQueueKey)||'[]'); q.push({action,payload});
+        localStorage.setItem(localQueueKey,JSON.stringify(q));
+      }
+      async function flushQueue(){
+        if(!navigator.onLine) return;
+        const q=JSON.parse(localStorage.getItem(localQueueKey)||'[]'); if(!q.length) return;
+        for(const item of q){
+          try{
+            if(item.action==='update'){
+              await databases.updateDocument(databaseId,collectionId,item.payload.id,item.payload.data);
+            }
+          }catch(e){console.error('Sync error',e); return;}
+        }
+        localStorage.removeItem(localQueueKey);
+      }
+      window.addEventListener('online', ()=>{offlineBadge.classList.add('hidden');flushQueue();});
+      window.addEventListener('offline',()=> offlineBadge.classList.remove('hidden'));
+      if(!navigator.onLine) offlineBadge.classList.remove('hidden');
 
-function applyPermissionsToRow(main, cost) {
-  if (!main) return;
+      /* حفظ الصف في Appwrite */
+      function saveRowToAppwrite(main,cost,dateTime,room){
+        const m=main.querySelectorAll('td'); const c=cost.querySelectorAll('.cost-input');
+        const data={
+          priority:m[0].textContent, lectureNumber:m[1].textContent, teacherName:m[2].textContent,
+          recordDate:new Date(dateTime).toISOString(), recordRoom:room,
+          mainCells:[...m].slice(3,13).map(td=>td.textContent),
+          cellColors:[...m].slice(3,13).map(td=>td.style.backgroundColor||''),
+          costs:[...c].map(td=>td.textContent),
+          totalCost:cost.querySelector('.total-cell').textContent
+        };
+        databases.createDocument(databaseId,collectionId,ID.unique(),data)
+                 .then(doc=>{main.dataset.docId=cost.dataset.docId=doc.$id;})
+                 .catch(console.error);
+      }
 
-  const role = currentRole;
-  const cols = roleCols[role];
-  const editable = editableByRole[role] || [];
-  const cells = [...main.children];
+      /* الصلاحيات لكل صف */
+      function applyPermissions(){
+        [...tableBodyEl.querySelectorAll('tr'), document.querySelector('#taskTable thead tr')]
+          .forEach(tr=>applyPermissionsToRow(tr,tr.nextElementSibling?.classList.contains('accounting-row')?tr.nextElementSibling:null));
+      }
+      function applyPermissionsToRow(main,cost){
+        if(!main) return;
+        const role=currentRole; const cols=roleCols[role]; const editable=editableByRole[role]||[];
+        const cells=[...main.children];
 
-  // إخفاء الأعمدة أو السماح بها
-  if (cols !== 'all') {
-    cells.forEach((td, i) => {
-      if (!cols.includes(i)) td.classList.add('hidden');
-      else td.classList.remove('hidden');
-      td.contentEditable = editable.includes(i) || role === 'admin';
-    });
-  } else {
-    cells.forEach((td, i) => {
-      td.classList.remove('hidden');
-      td.contentEditable = role !== 'accountant';
-    });
-  }
+        cells.forEach((td,i)=>{
+          const show=(cols==='all'||cols.includes(i));
+          td.classList.toggle('hidden',!show);
+          td.contentEditable = (role==='admin') ? (i!==cells.length-1) : editable.includes(i);
+        });
 
-  // كلفة (الصف الثاني)
-  if (cost) {
-    [...cost.children].forEach((td, i) => {
-      if (cols !== 'all' && !cols.includes(i)) td.classList.add('hidden');
-      else td.classList.remove('hidden');
-      td.contentEditable = editable.includes(i + 26) || role === 'admin'; // 26 لأنه الكلفة بالصف التاني
-    });
-  }
+        if(cost){
+          [...cost.children].forEach((td,i)=>{
+            const show=(cols==='all'||cols.includes(i));
+            td.classList.toggle('hidden',!show);
+            td.contentEditable = role==='admin' ? true : editable.includes(i+26);
+          });
+        }
 
-  // إخفاء زر الحذف إذا مو أدمين
-  const delIdx = 25;
-  const delCell = cells[delIdx];
-  if (role !== 'admin') delCell.classList.add('hidden');
-  else delCell.classList.remove('hidden');
-}
+        /* زر الحذف */
+        const delIdx=cells.length-1;
+        cells[delIdx].classList.toggle('hidden',role!=='admin');
+      }
+    }); /* نهاية DOMContentLoaded */
+  </script>
+
 </body>
 </html>
