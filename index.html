@@ -2,6 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>إدارة مهام My Exams</title>
 
   <!-- خط كايرو -->
@@ -9,361 +11,334 @@
 
   <!-- ====== الأنماط العامة ====== -->
   <style>
-    :root{
-      --primary:#0069d9;         --primary-hover:#0053b3;
-      --light-bg:#f5f7fa;        --card-bg:#ffffff;
-      --border:#dfe3e8;          --text-dark:#212529;
-      --shadow:0 6px 24px rgba(0,0,0,.08);
-      --danger:#dc3545;
+    :root {
+      --primary: #0069d9;
+      --primary-hover: #0053b3;
+      --light-bg: #f5f7fa;
+      --card-bg: #ffffff;
+      --border: #dfe3e8;
+      --text-dark: #212529;
+      --shadow: 0 6px 24px rgba(0, 0, 0, .08);
+      --danger: #dc3545;
     }
-    *{box-sizing:border-box;font-family:"Cairo",sans-serif;transition:.3s}
-    body{margin:0;padding:32px 16px;background:var(--light-bg);color:var(--text-dark)}
-    h2{margin:0 0 32px;text-align:center;font:700 2.2rem/1 "Cairo";
-       color:var(--primary);text-shadow:0 2px 4px rgba(0,0,0,.1)}
-
-    /* صندوق الدخول */
-    .login-box{
-      max-width:420px;margin:0 auto 40px;background:#fff;padding:28px;border-radius:20px;
-      box-shadow:var(--shadow);text-align:center
+    * {
+      box-sizing: border-box;
+      font-family: "Cairo", sans-serif;
+      transition: .3s;
     }
-    .login-box input,.login-box button{
-      width:100%;padding:14px;margin:12px 0;border:1px solid var(--border);
-      border-radius:10px;font-size:1rem
+    body {
+      margin: 0;
+      padding: 32px 16px;
+      background: var(--light-bg);
+      color: var(--text-dark);
     }
-    .login-box button{
-      background:var(--primary);color:#fff;font-weight:700;cursor:pointer;
-      box-shadow:0 3px 12px rgba(0,105,217,.3)
+    h2 {
+      margin: 0 0 32px;
+      text-align: center;
+      font: 700 2.2rem/1 "Cairo";
+      color: var(--primary);
+      text-shadow: 0 2px 4px rgba(0, 0, 0, .1);
     }
-    .login-box button:hover{background:var(--primary-hover);transform:scale(1.05)}
-
-    /* نموذج إضافة المهمة */
-    #taskForm{
-      display:none;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-      gap:20px;max-width:1150px;margin:0 auto;background:var(--card-bg);
-      padding:36px;border-radius:20px;box-shadow:var(--shadow);align-items:end
+    .login-box {
+      max-width: 420px;
+      margin: 0 auto 40px;
+      background: #fff;
+      padding: 28px;
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      text-align: center;
     }
-    #taskForm label{display:flex;flex-direction:column;font-weight:600;gap:8px}
-    #taskForm input,#taskForm select,#taskForm button{
-      padding:14px 16px;border:1px solid var(--border);border-radius:12px;font-size:1rem
+    .login-box input,
+    .login-box button {
+      width: 100%;
+      padding: 14px;
+      margin: 12px 0;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 1rem;
     }
-    #taskForm button{background:var(--primary);color:#fff;font-weight:700;cursor:pointer}
-    #taskForm button:hover{background:var(--primary-hover);transform:scale(1.04)}
-
-    /* الجدول */
-    .table-wrapper{
-      max-width:100%;max-height:70vh;overflow:auto;margin-top:48px;
-      border-radius:20px;box-shadow:var(--shadow);background:var(--card-bg)
+    .login-box button {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 3px 12px rgba(0, 105, 217, .3);
     }
-    table{width:100%;min-width:1350px;border-collapse:collapse}
-    thead th{position:sticky;top:0;background:#e9ecef;font-weight:bold;padding:16px 0}
-    th,td{padding:12px 10px;border:1px solid var(--border);text-align:center;
-          font-size:.9rem;white-space:nowrap}
-    tr:nth-child(even){background:#fdfdfd}
-    tr:hover:not(.accounting-row){background:#f1f5f8}
-    .accounting-row td{background:#fffde7;font-weight:bold}
-
-    /* ملخص الكلفة */
-    .total-summary{
-      margin-top:20px;max-width:1150px;background:#fff;padding:20px;border-radius:16px;
-      box-shadow:var(--shadow);font-size:1.1rem;display:flex;justify-content:space-between;
-      align-items:center
+    .login-box button:hover {
+      background: var(--primary-hover);
+      transform: scale(1.05);
     }
-
-    /* تصنيفات إضافية */
-    .hidden{display:none!important}
+    #taskForm {
+      display: none;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+      max-width: 1150px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 36px;
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      align-items: end;
+    }
+    #taskForm label {
+      display: flex;
+      flex-direction: column;
+      font-weight: 600;
+      gap: 8px;
+    }
+    #taskForm input,
+    #taskForm select,
+    #taskForm button {
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 1rem;
+    }
+    #taskForm button {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    #taskForm button:hover {
+      background: var(--primary-hover);
+      transform: scale(1.04);
+    }
+    .table-wrapper {
+      max-width: 100%;
+      max-height: 70vh;
+      overflow: auto;
+      margin-top: 48px;
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      background: var(--card-bg);
+    }
+    table {
+      width: 100%;
+      min-width: 1350px;
+      border-collapse: collapse;
+    }
+    thead th {
+      position: sticky;
+      top: 0;
+      background: #e9ecef;
+      font-weight: bold;
+      padding: 16px 0;
+    }
+    th, td {
+      padding: 12px 10px;
+      border: 1px solid var(--border);
+      text-align: center;
+      font-size: .9rem;
+      white-space: nowrap;
+    }
+    tr:nth-child(even) {
+      background: #fdfdfd;
+    }
+    tr:hover:not(.accounting-row) {
+      background: #f1f5f8;
+    }
+    .accounting-row td {
+      background: #fffde7;
+      font-weight: bold;
+    }
+    .total-summary {
+      margin-top: 20px;
+      max-width: 1150px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      font-size: 1.1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .hidden {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
-
-  <!-- بسملة -->
-  <p style="text-align:center;font-size:1.8rem;font-weight:bold;color:#0069d9;
-            margin:0 0 20px;text-shadow:0 2px 4px rgba(0,0,0,.1)">
+  <p style="text-align:center;font-size:1.8rem;font-weight:bold;color:#0069d9;margin:0 0 20px;text-shadow:0 2px 4px rgba(0,0,0,.1)">
     بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيمِ
   </p>
-
   <h2>قائمة المهام لمشروع My Exams</h2>
-
-  <!-- ====== شاشة الدخول ====== -->
   <div class="login-box" id="loginBox">
     <input type="password" id="adminPass" placeholder="أدخل كلمة المرور" />
     <button type="button" onclick="checkLogin()">دخول</button>
   </div>
-
-  <!-- ====== نموذج إضافة درس ====== -->
   <form id="taskForm">
     <label><input type="checkbox" id="priorityFlag" /> أولوية</label>
-    <label>رقم المحاضرة <input type="text" function checkLogin() {
-  const pass = adminPass.value.trim();
-
-  for (const [role, pwd] of Object.entries(PASSWORDS)) {
-    if (pass === pwd) {
-      currentRole = role;
-      break;
-    }
-  }
-
-  if (currentRole === 'guest') {
-    return alert('كلمة المرور غير صحيحة');
-  }
-
-  // تفعيل الواجهات
-  loginBox.style.display   = 'none';
-  taskForm.style.display   = currentRole === 'admin' ? 'grid' : 'none';
-  addBtn.style.display     = currentRole === 'admin' ? 'inline-block' : 'none';
-  summaryBox.style.display = 'flex';
-  refreshBtn.style.display = 'inline-block';
-
-  // جلسة Appwrite
-  account.get()
-    .then(loadFromAppwrite)
-    .catch(() => account.createAnonymousSession()
-                        .then(loadFromAppwrite)
-                        .catch(console.error));
-
-  // تحقق الاتصال كل 10 ثواني
-  setInterval(() => {
-    databases.listDocuments(databaseId, collectionId, [], 1, 0)
-      .catch(() => {});
-  }, 10000);
-}
-id="sessionNumber" required /></label>
-    <label>اسم الأستاذ <input type="text" id="teacherName" required /></label>
+    <label>رقم المحاضرة
+      <input type="text" id="sessionNumber" required />
+    </label>
+    <label>اسم الأستاذ
+      <input type="text" id="teacherName" required />
+    </label>
     <label>تاريخ/ساعة التصوير
       <input type="datetime-local" id="recordDateTime" required />
     </label>
     <label>القاعة
       <select id="recordRoom" required>
-        <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
       </select>
     </label>
     <button type="button" id="addBtn">إضافة</button>
   </form>
-
-  <!-- زر التحديث -->
   <div style="text-align:center;margin-top:8px">
-    <button id="refreshBtn"
-            style="padding:8px 18px;border:none;border-radius:10px;
-                   background:var(--primary);color:#fff;font-weight:600;cursor:pointer;display:none">
-      🔄 تحديث
-    </button>
+    <button id="refreshBtn" style="padding:8px 18px;border:none;border-radius:10px;background:var(--primary);color:#fff;font-weight:600;cursor:pointer;display:none">🔄 تحديث</button>
   </div>
-
-  <!-- ====== جدول المهام ====== -->
   <div class="table-wrapper">
     <table id="taskTable">
       <thead>
         <tr>
-          <th>الأولوية</th><th>رقم</th><th>الأستاذ</th>
-          <th>تنسيق</th><th>منسق</th><th>رفع</th><th>رافع</th>
-          <th>إدخال ملف</th><th>مدخل</th><th>رفع أسئلة</th><th>رافع</th>
-          <th>إدخال أسئلة</th><th>مدخل</th><th>التصوير</th><th>القاعة</th><th>المصور</th>
-          <th>مونتاج</th><th>ممنتج</th><th>إدخال فيديو</th><th>مدخل</th>
-          <th>تصميم/كتابة</th><th>الكاتب</th><th>تسويق</th>
-          <th>الكلفة</th><th>حذف</th>
+          <th>الأولوية</th><th>رقم</th><th>الأستاذ</th><th>تنسيق</th><th>منسق</th><th>رفع</th><th>رافع</th>
+          <th>إدخال ملف</th><th>مدخل</th><th>رفع أسئلة</th><th>رافع</th><th>إدخال أسئلة</th><th>مدخل</th>
+          <th>التصوير</th><th>القاعة</th><th>المصور</th><th>مونتاج</th><th>ممنتج</th><th>إدخال فيديو</th><th>مدخل</th>
+          <th>تصميم/كتابة</th><th>الكاتب</th><th>تسويق</th><th>الكلفة</th><th>حذف</th>
         </tr>
       </thead>
       <tbody id="tableBody"></tbody>
     </table>
   </div>
-
-  <!-- ملخص الكلفة -->
   <div class="total-summary" id="summaryBox" style="display:none">
     <span>💰 <strong>إجمالي الكلفة:</strong> <span id="totalCost">0</span> ل.س</span>
     <span id="offlineBadge" class="hidden" style="color:var(--danger);font-weight:bold">🚫 أوفلاين</span>
   </div>
-
-  <!-- ====== مكتبة Appwrite ====== -->
   <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.0/dist/appwrite.min.js"></script>
+  <script>
+    // إعداد Appwrite
+    const { Client, Databases, Account, ID } = Appwrite;
+    const client = new Client()
+      .setEndpoint('https://fra.cloud.appwrite.io/v1')
+      .setProject('66cf3db2002471686c6f');
+    const account = new Account(client);
+    const databases = new Databases(client);
+    const databaseId = '68136c4cee33221deb0f';
+    const collectionId = 'tasks';
 
-  <!-- ====== سكربت التطبيق ====== -->
- <script>
-/* ============ الإعداد العام ============ */
-const { Client, Databases, Account, ID } = Appwrite;
+    // عناصر DOM
+    const $ = id => document.getElementById(id);
+    const adminPass = $('adminPass');
+    const addBtn = $('addBtn');
+    const refreshBtn = $('refreshBtn');
+    const loginBox = $('loginBox');
+    const taskForm = $('taskForm');
+    const summaryBox = $('summaryBox');
+    const tableBodyEl = $('tableBody');
+    const totalCostEl = $('totalCost');
+    const offlineBadge = $('offlineBadge');
+    const priorityFlag = $('priorityFlag');
+    const sessionNumber = $('sessionNumber');
+    const teacherName = $('teacherName');
+    const recordDateTime = $('recordDateTime');
+    const recordRoom = $('recordRoom');
 
-const client      = new Client()
-  .setEndpoint('https://fra.cloud.appwrite.io/v1')
-  .setProject('66cf3db2002471686c6f');
+    // كلمات المرور والأدوار
+    const PASSWORDS = {
+      admin: 'Admin12',
+      accountant: 'account123',
+      coordinator: 'design123',
+      entry: 'entry123',
+      cameraman: 'photo123',
+      montage: 'edit123',
+      media: 'social123',
+      marketing: 'market123'
+    };
+    let currentRole = 'guest';
+    const roleCols = {
+      admin: 'all',
+      accountant: 'all',
+      coordinator: [0,1,2,3,4,7,25],
+      entry: [0,1,2,7,8,11,12,18,19],
+      cameraman: [0,1,2,13,14],
+      montage: [0,1,2,13,16,17],
+      media: [0,1,2,7,11,18],
+      marketing: [22]
+    };
+    const editableByRole = {
+      coordinator: [3,4,7],
+      entry: [7,8,11,12,18,19],
+      montage: [16,17],
+      media: [7,11,18],
+      marketing: [22]
+    };
 
-const account     = new Account(client);
-const databases   = new Databases(client);
-const databaseId  = '68136c4cee33221deb0f';
-const collectionId= 'tasks';
-
-/* عناصر DOM */
-const $ = id => document.getElementById(id);
-const adminPass   = $('adminPass');
-const addBtn      = $('addBtn');
-const refreshBtn  = $('refreshBtn');
-const loginBox    = $('loginBox');
-const taskForm    = $('taskForm');
-const summaryBox  = $('summaryBox');
-const tableBodyEl = $('tableBody');
-const totalCostEl = $('totalCost');
-const offlineBadge= $('offlineBadge');
-
-const priorityFlag  = $('priorityFlag');
-const sessionNumber = $('sessionNumber');
-const teacherName   = $('teacherName');
-const recordDateTime= $('recordDateTime');
-const recordRoom    = $('recordRoom');
-
-/* كلمات المرور */
-const PASSWORDS = {
-  admin:'Admin12', accountant:'account123',
-  coordinator:'design123', entry:'entry123',
-  cameraman:'photo123', montage:'edit123',
-  media:'social123', marketing:'market123'
-};
-let currentRole = 'guest';
-
-/* صلاحيات الأعمدة */
-const roleCols = {
-  admin:'all', accountant:'all',
-  coordinator:[0,1,2,3,4,7,25],
-  entry:[0,1,2,7,8,11,12,18,19],
-  cameraman:[0,1,2,13,14],
-  montage:[0,1,2,13,16,17],
-  media:[0,1,2,7,11,18],
-  marketing:[22]
-};
-const editableByRole = {
-  coordinator:[3,4,7],
-  entry:[7,8,11,12,18,19],
-  montage:[16,17],
-  media:[7,11,18],
-  marketing:[22]
-};
-
-function checkLogin() {
-  const pass = adminPass.value.trim();
-
-  for (const [role, pwd] of Object.entries(PASSWORDS)) {
-    if (pass === pwd) {
-      currentRole = role;
-      break;
+    // دالة تسجيل الدخول
+    function checkLogin() {
+      const pass = adminPass.value.trim();
+      for (const [role, pwd] of Object.entries(PASSWORDS)) {
+        if (pass === pwd) { currentRole = role; break; }
+      }
+      if (currentRole === 'guest') return alert('كلمة المرور غير صحيحة');
+      loginBox.style.display = 'none';
+      taskForm.style.display = currentRole === 'admin' ? 'grid' : 'none';
+      addBtn.style.display = currentRole === 'admin' ? 'inline-block' : 'none';
+      summaryBox.style.display = 'flex';
+      refreshBtn.style.display = 'inline-block';
+      account.get().then(loadFromAppwrite).catch(() => account.createAnonymousSession().then(loadFromAppwrite).catch(console.error));
+      setInterval(() => databases.listDocuments(databaseId, collectionId, [], 1, 0).catch(() => {}), 10000);
     }
-  }
 
-  if (currentRole === 'guest') {
-    return alert('كلمة المرور غير صحيحة');
-  }
+    // إضافة مهمة جديدة
+    addBtn.addEventListener('click', async () => {
+      const priority = priorityFlag.checked ? '✅' : '❌';
+      const lecture = sessionNumber.value.trim();
+      const teacher = teacherName.value.trim();
+      const dateTime = recordDateTime.value;
+      if (!lecture || !teacher || !dateTime) return alert('الرجاء ملء جميع الحقول');
+      const payload = {
+        priority,
+        lectureNumber: lecture,
+        teacherName: teacher,
+        recordDate: new Date(dateTime).toISOString(),
+        recordRoom: recordRoom.value,
+        mainCells: Array(10).fill(''),
+        cellColors: Array(10).fill(''),
+        costs: Array(10).fill(''),
+        totalCost: ''
+      };
+      try {
+        const doc = await databases.createDocument(databaseId, collectionId, ID.unique(), payload);
+        addLectureRow(priority, lecture, teacher, dateTime, recordRoom.value, true, doc.$id);
+        taskForm.reset(); sortTable();
+      } catch (e) {
+        console.error(e); alert('حصل خطأ أثناء الحفظ!');
+      }
+    });
 
-  // تفعيل الواجهات
-  loginBox.style.display   = 'none';
-  taskForm.style.display   = currentRole === 'admin' ? 'grid' : 'none';
-  addBtn.style.display     = currentRole === 'admin' ? 'inline-block' : 'none';
-  summaryBox.style.display = 'flex';
-  refreshBtn.style.display = 'inline-block';
-
-  // جلسة Appwrite
-  account.get()
-    .then(loadFromAppwrite)
-    .catch(() => account.createAnonymousSession()
-                        .then(loadFromAppwrite)
-                        .catch(console.error));
-
-  // تحقق الاتصال كل 10 ثواني
-  setInterval(() => {
-    databases.listDocuments(databaseId, collectionId, [], 1, 0)
-      .catch(() => {});
-  }, 10000);
-}
-
-
-/* ============ إضافة صف جديد ============ */
-addBtn.addEventListener('click', async () => {
-  const priority = priorityFlag.checked ? '✅' : '❌';
-  const lecture  = sessionNumber.value.trim();
-  const teacher  = teacherName.value.trim();
-  const dateTime = recordDateTime.value;
-  if (!lecture || !teacher || !dateTime) return alert('الرجاء ملء جميع الحقول');
-
-  const room   = recordRoom.value;
-  const blank  = Array(10).fill('');
-  const payload = {
-    priority,
-    lectureNumber : lecture,
-    teacherName   : teacher,
-    recordDate    : new Date(dateTime).toISOString(),
-    recordRoom    : room,
-    mainCells     : blank,
-    cellColors    : blank,
-    costs         : blank,
-    totalCost     : ''
-  };
-
-  try {
-    const doc = await databases.createDocument(databaseId, collectionId, ID.unique(), payload);
-    addLectureRow(priority, lecture, teacher, dateTime, room, true, doc.$id);
-    taskForm.reset(); sortTable();
-  } catch (e) {
-    console.error(e); alert('حصل خطأ أثناء الحفظ!');
-  }
-});
-
-/* ============ إنشاء صف البيانات والكلفة ============ */
-function addLectureRow(priority, num, teacher, dateTime, room, skipSave = false, docId = null) {
-  const main = document.createElement('tr');
-  const cost = document.createElement('tr');
-  cost.classList.add('accounting-row');
-  if (docId) main.dataset.docId = cost.dataset.docId = docId;
-
-  /* أول 3 أعمدة */
-  [priority, num, teacher].forEach(v => {
-    const td = document.createElement('td'); td.textContent = v; main.appendChild(td);
-  });
-
-  /* 10 خلايا رئيسية قابلة للتعديل */
-  for (let i = 0; i < 10; i++) {
-    const td = document.createElement('td');
-    td.contentEditable = true; td.style.direction = 'rtl';
-    main.appendChild(td);
-  }
-
-  /* التاريخ + القاعة */
-  const formatted = Intl.DateTimeFormat('ar-SY',
-      { dateStyle:'short', timeStyle:'short', hour12:false })
-      .format(new Date(dateTime));
-  [''+formatted, room].forEach(t=>{
-    const td=document.createElement('td'); td.textContent=t; main.appendChild(td);
-  });
-
-  /* أعمدة فارغة ثم الحذف */
-  for (let i=0;i<7;i++) main.appendChild(document.createElement('td'));
-  main.appendChild(document.createElement('td')); // للكلفة
-  const del = document.createElement('td');
-  del.innerHTML='✖'; del.style='cursor:pointer;color:var(--danger);font-weight:bold';
-  del.onclick = () => deleteRow(main,cost); main.appendChild(del);
-
-  /* صف الكلفة */
-  for(let i=0;i<3;i++) cost.appendChild(document.createElement('td'));
-  for(let i=0;i<10;i++){
-    const td=document.createElement('td');
-    td.contentEditable=true; td.classList.add('cost-input'); cost.appendChild(td);
-  }
-  for(let i=0;i<10;i++) cost.appendChild(document.createElement('td'));
-  const total=document.createElement('td'); total.classList.add('total-cell'); cost.appendChild(total);
-  cost.appendChild(document.createElement('td')); // للحذف
-
-  tableBodyEl.append(main,cost);
-  [...main.querySelectorAll('[contenteditable]'),
-   ...cost.querySelectorAll('[contenteditable]')]
-    .forEach(td=>td.addEventListener('blur',()=>syncRowUpdate(main,cost)));
-
-  if(!skipSave) saveRowToAppwrite(main,cost,dateTime,room);
-  applyPermissionsToRow(main,cost);
-}
-
-/* حذف صف */
-function deleteRow(main,cost){
+    // إنشاء صف في الجدول مع الحساب والمتابعة
+    function addLectureRow(priority, num, teacher, dateTime, room, skipSave = false, docId = null) {
+      const main = document.createElement('tr');
+      const cost = document.createElement('tr'); cost.classList.add('accounting-row');
+      if (docId) { main.dataset.docId = cost.dataset.docId = docId; }
+      [priority, num, teacher].forEach(v => { const td = document.createElement('td'); td.textContent = v; main.appendChild(td); });
+      for (let i = 0; i < 10; i++) { const td = document.createElement('td'); td.contentEditable = true; td.style.direction = 'rtl'; main.appendChild(td); }
+      const formatted = new Intl.DateTimeFormat('ar-SY', { dateStyle: 'short', timeStyle: 'short', hour12: false }).format(new Date(dateTime));
+      [formatted, room].forEach(val => { const td = document.createElement('td'); td.textContent = val; main.appendChild(td); });
+      for (let i = 0; i < 7; i++) main.appendChild(document.createElement('td'));
+      main.appendChild(document.createElement('td'));
+      const del = document.createElement('td'); del.innerHTML = '✖'; del.style = 'cursor:pointer;color:var(--danger);font-weight:bold'; del.onclick = () => deleteRow(main, cost); main.appendChild(del);
+      for (let i = 0; i < 3; i++) cost.appendChild(document.createElement('td'));
+      for (let i = 0; i < 10; i++) { const td = document.createElement('td'); td.contentEditable = true; td.classList.add('cost-input'); cost.appendChild(td); }
+      for (let i = 0; i < 10; i++) cost.appendChild(document.createElement('td'));
+      const totalCell = document.createElement('td'); totalCell.classList.add('total-cell'); cost.appendChild(totalCell);
+      cost.appendChild(document.createElement('td'));
+      tableBodyEl.append(main, cost);
+      [...main.querySelectorAll('[contenteditable]'), ...cost.querySelectorAll('[contenteditable]')].forEach(td => td.addEventListener('blur', () => syncRowUpdate(main, cost)));
+      if (!skipSave) saveRowToAppwrite(main, cost, dateTime, room);
+      applyPermissionsToRow(main, cost);
+    }
+ function deleteRow(main,cost){
   if(currentRole!=='admin') return;
   const id=main.dataset.docId;
   main.remove(); cost.remove(); calculateSummary();
   if(id) databases.deleteDocument(databaseId,collectionId,id).catch(console.error);
 }
-
-/* التحديث */
-function syncRowUpdate(main,cost){
+  function syncRowUpdate(main,cost){
   if(!navigator.onLine){
     pushToQueue('update',{id:main.dataset.docId,data:collectRowData(main,cost)}); return;
   }
@@ -373,8 +348,6 @@ function syncRowUpdate(main,cost){
            .catch(console.error);
   sortTable();
 }
-
-/* تجميع بيانات الصف */
 function collectRowData(main,cost){
   const m=main.querySelectorAll('td');
   const c=cost.querySelectorAll('.cost-input');
@@ -407,16 +380,16 @@ function loadFromAppwrite(){
 let realtimeStarted=false;
 function initRealtimeOnce(){ if(!realtimeStarted){ initRealtime(); realtimeStarted=true; } }
 function initRealtime(){
-  const ch=`databases.${databaseId}.collections.${collectionId}.documents`;
+  const ch=databases.${databaseId}.collections.${collectionId}.documents;
   client.subscribe(ch,res=>{
     const ev=res.event||res.events?.[0]||''; const doc=res.payload||{};
     if(ev.endsWith('.create')){
-      if(document.querySelector(`tr[data-doc-id="${doc.$id}"]`)) return;
+      if(document.querySelector(tr[data-doc-id="${doc.$id}"])) return;
       addLectureRow(doc.priority,doc.lectureNumber,doc.teacherName,
                     doc.recordDate,doc.recordRoom,true,doc.$id);
       sortTable();
     }else if(ev.endsWith('.update')){
-      const main=document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
+      const main=document.querySelector(tr[data-doc-id="${doc.$id}"]);
       if(!main) return;
       const cost=main.nextElementSibling;
       main.children[13].textContent = Intl.DateTimeFormat('ar-SY',
@@ -429,7 +402,7 @@ function initRealtime(){
       cost.querySelector('.total-cell').textContent = doc.totalCost||'';
       calculateSummary(); sortTable();
     }else if(ev.endsWith('.delete')){
-      const main=document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
+      const main=document.querySelector(tr[data-doc-id="${doc.$id}"]);
       if(main){ const cost=main.nextElementSibling; main.remove(); cost.remove(); calculateSummary(); }
     }
   });
@@ -528,8 +501,6 @@ function applyPermissionsToRow(main,cost){
   }
   cells[cells.length-1].classList.toggle('hidden',role!=='admin'); // زر الحذف
 }
-</script>
-
-
+  </script>
 </body>
 </html>
