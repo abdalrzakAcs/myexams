@@ -488,21 +488,12 @@ document.addEventListener('contextmenu', e=>{
 });
 
 // ❻ كليك يسار على عمود حالة: بدّل اللون
-document.addEventListener('click', e=>{
+// ❻ منع الكليك اليسار من تنفيذ أي تغيير (خليه للتعديل فقط)
+document.addEventListener('click', e => {
   const td = e.target.closest('td');
-  if(!td || !td.isContentEditable) return;
-
-  if(statusCols.includes(td.cellIndex)){
-    const current = td.style.backgroundColor;
-    const rgbHex  = toHex(current);
-    const idx     = colorsCycle.indexOf(rgbHex);
-    const nextCol = colorsCycle[(idx + 1) % colorsCycle.length];
-    const nextLbl = statusOptions[colorsCycle.indexOf(nextCol)].label;
-    td.style.backgroundColor = nextCol;
-    td.textContent           = nextLbl;
-    td.dispatchEvent(new Event('blur'));
-  }
+  if (!td || !td.isContentEditable) return;
 });
+
 
 // مساعد لتحويل rgb() إلى ‎#hex
 function toHex(rgb){
