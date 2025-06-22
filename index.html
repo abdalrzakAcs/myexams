@@ -92,7 +92,41 @@
   <!-- ====== نموذج إضافة درس ====== -->
   <form id="taskForm">
     <label><input type="checkbox" id="priorityFlag" /> أولوية</label>
-    <label>رقم المحاضرة <input type="text" id="sessionNumber" required /></label>
+    <label>رقم المحاضرة <input type="text" function checkLogin() {
+  const pass = adminPass.value.trim();
+
+  for (const [role, pwd] of Object.entries(PASSWORDS)) {
+    if (pass === pwd) {
+      currentRole = role;
+      break;
+    }
+  }
+
+  if (currentRole === 'guest') {
+    return alert('كلمة المرور غير صحيحة');
+  }
+
+  // تفعيل الواجهات
+  loginBox.style.display   = 'none';
+  taskForm.style.display   = currentRole === 'admin' ? 'grid' : 'none';
+  addBtn.style.display     = currentRole === 'admin' ? 'inline-block' : 'none';
+  summaryBox.style.display = 'flex';
+  refreshBtn.style.display = 'inline-block';
+
+  // جلسة Appwrite
+  account.get()
+    .then(loadFromAppwrite)
+    .catch(() => account.createAnonymousSession()
+                        .then(loadFromAppwrite)
+                        .catch(console.error));
+
+  // تحقق الاتصال كل 10 ثواني
+  setInterval(() => {
+    databases.listDocuments(databaseId, collectionId, [], 1, 0)
+      .catch(() => {});
+  }, 10000);
+}
+id="sessionNumber" required /></label>
     <label>اسم الأستاذ <input type="text" id="teacherName" required /></label>
     <label>تاريخ/ساعة التصوير
       <input type="datetime-local" id="recordDateTime" required />
@@ -200,33 +234,41 @@ const editableByRole = {
   marketing:[22]
 };
 
-/* ============ تسجيل الدخول ============ */
-window.checkLogin = function () {
+function checkLogin() {
   const pass = adminPass.value.trim();
+
   for (const [role, pwd] of Object.entries(PASSWORDS)) {
-    if (pass === pwd) { currentRole = role; break; }
+    if (pass === pwd) {
+      currentRole = role;
+      break;
+    }
   }
-  if (currentRole === 'guest') return alert('كلمة المرور غير صحيحة');
 
-  /* تفعيل الواجهات */
-  loginBox.style.display      = 'none';
-  taskForm.style.display      = currentRole === 'admin' ? 'grid' : 'none';
-  addBtn.style.display        = currentRole === 'admin' ? 'inline-block' : 'none';
-  summaryBox.style.display    = 'flex';
-  refreshBtn.style.display    = 'inline-block';
+  if (currentRole === 'guest') {
+    return alert('كلمة المرور غير صحيحة');
+  }
 
-  /* جلسة Appwrite */
+  // تفعيل الواجهات
+  loginBox.style.display   = 'none';
+  taskForm.style.display   = currentRole === 'admin' ? 'grid' : 'none';
+  addBtn.style.display     = currentRole === 'admin' ? 'inline-block' : 'none';
+  summaryBox.style.display = 'flex';
+  refreshBtn.style.display = 'inline-block';
+
+  // جلسة Appwrite
   account.get()
     .then(loadFromAppwrite)
     .catch(() => account.createAnonymousSession()
                         .then(loadFromAppwrite)
                         .catch(console.error));
 
-  /* Ping كل 10 ثوانٍ للتحقق من الاتصال */
-  setInterval(() =>
-      databases.listDocuments(databaseId, collectionId, [], 1, 0).catch(() => {}),
-    10000);
-};
+  // تحقق الاتصال كل 10 ثواني
+  setInterval(() => {
+    databases.listDocuments(databaseId, collectionId, [], 1, 0)
+      .catch(() => {});
+  }, 10000);
+}
+
 
 /* ============ إضافة صف جديد ============ */
 addBtn.addEventListener('click', async () => {
