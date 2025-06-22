@@ -409,3 +409,59 @@ function applyPermissionsToRow(main, cost) {
   const last = main.children[cells.length-1];
   last.classList.toggle('hidden', currentRole !== 'admin');
 }
+// === قائمة الموظفين ===
+const names = [
+  "محمد", "أحمد", "علي", "خالد", "نور", "سارة",
+  "هدى", "رامي", "سماح", "نوار", "ياسين", "دانا"
+];
+
+// === قائمة الألوان ===
+const colors = ["#fffa9e", "#caffbf", "#a0c4ff", "#ffc6c6"];
+
+document.addEventListener('contextmenu', function (e) {
+  const td = e.target.closest('td');
+  if (!td || !td.isContentEditable) return;
+
+  e.preventDefault();
+
+  // قائمة الأسماء
+  const menu = document.createElement('div');
+  menu.style.position = 'fixed';
+  menu.style.top = `${e.clientY}px`;
+  menu.style.left = `${e.clientX}px`;
+  menu.style.background = '#fff';
+  menu.style.border = '1px solid #ccc';
+  menu.style.borderRadius = '8px';
+  menu.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+  menu.style.padding = '4px';
+  menu.style.zIndex = '10000';
+  names.forEach(name => {
+    const item = document.createElement('div');
+    item.textContent = name;
+    item.style.padding = '6px 12px';
+    item.style.cursor = 'pointer';
+    item.onmouseover = () => item.style.background = '#eee';
+    item.onmouseout = () => item.style.background = '#fff';
+    item.onclick = () => {
+      td.textContent = name;
+      menu.remove();
+      td.dispatchEvent(new Event('blur'));
+    };
+    menu.appendChild(item);
+  });
+
+  document.body.appendChild(menu);
+  document.addEventListener('click', () => menu.remove(), { once: true });
+});
+
+// === التلوين بالضغط ===
+document.addEventListener('click', function (e) {
+  const td = e.target.closest('td');
+  if (!td || !td.isContentEditable) return;
+
+  const current = td.style.backgroundColor;
+  const index = colors.indexOf(current);
+  const nextColor = colors[(index + 1) % colors.length];
+  td.style.backgroundColor = nextColor;
+  td.dispatchEvent(new Event('blur'));
+});
