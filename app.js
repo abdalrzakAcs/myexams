@@ -137,17 +137,17 @@ function addLectureRow(priority, num, teacher, dateTime, room, skipSave = false,
   if (docId) {
     main.dataset.docId = cost.dataset.docId = docId;
   }
-  // ✅ خزّن نسخة الـ ISO للتاريخ حتى تبقى دائماً صحيحة للحفظ
-  main.dataset.dateIso = dateTime;
+  // ✅ خزّن نسخة ISO من التاريخ
+  if (dateTime) {
+    main.dataset.dateIso = new Date(dateTime).toISOString();
+  }
 
-  // --- الأعمدة الأساسية ---
   [priority, num, teacher].forEach(v => {
     const td = document.createElement('td');
     td.textContent = v;
     main.appendChild(td);
   });
 
-  // خلايا العمل (editable)
   for (let i = 0; i < 10; i++) {
     const td = document.createElement('td');
     td.contentEditable = true;
@@ -155,13 +155,14 @@ function addLectureRow(priority, num, teacher, dateTime, room, skipSave = false,
     main.appendChild(td);
   }
 
-  // عرض التاريخ بشكل مقروء
   let formatted = '';
   if (dateTime) {
     const dt = new Date(dateTime);
     if (!isNaN(dt.getTime())) {
       formatted = new Intl.DateTimeFormat('ar-SY', {
-        dateStyle: 'short', timeStyle: 'short', hour12: false
+        dateStyle: 'short',
+        timeStyle: 'short',
+        hour12: false
       }).format(dt);
     }
   }
@@ -171,7 +172,6 @@ function addLectureRow(priority, num, teacher, dateTime, room, skipSave = false,
     main.appendChild(td);
   });
 
-  // أعمدة فارغة + زر الحذف
   for (let i = 0; i < 7; i++) main.appendChild(document.createElement('td'));
   main.appendChild(document.createElement('td'));
   const del = document.createElement('td');
@@ -180,7 +180,6 @@ function addLectureRow(priority, num, teacher, dateTime, room, skipSave = false,
   del.onclick = () => deleteRow(main, cost);
   main.appendChild(del);
 
-  // صف المحاسبة
   for (let i = 0; i < 3; i++) cost.appendChild(document.createElement('td'));
   for (let i = 0; i < 10; i++) {
     const td = document.createElement('td');
@@ -194,11 +193,10 @@ function addLectureRow(priority, num, teacher, dateTime, room, skipSave = false,
   cost.appendChild(totalCell);
   cost.appendChild(document.createElement('td'));
 
-  // أضف الصفين إلى الجدول
   tableBodyEl.append(main, cost);
 
-  // مستمع blur للحفظ الفوري
-  [...main.querySelectorAll('[contenteditable]'), ...cost.querySelectorAll('[contenteditable]')]
+  [...main.querySelectorAll('[contenteditable]'),
+   ...cost.querySelectorAll('[contenteditable]')]
     .forEach(td => td.addEventListener('blur', () => syncRowUpdate(main, cost)));
 
   if (!skipSave) {
@@ -244,11 +242,13 @@ function collectRowData(main, cost) {
   const m = main.querySelectorAll('td');
   const c = cost.querySelectorAll('.cost-input');
 
+  const dateIso = main.dataset.dateIso || new Date().toISOString(); // ✅
+
   return {
     priority     : m[0].textContent,
     lectureNumber: m[1].textContent,
     teacherName  : m[2].textContent,
-    recordDate   : main.dataset.dateIso || new Date().toISOString(), // ✅ دوماً ISO
+    recordDate   : dateIso,                                           // ✅
     recordRoom   : m[14].textContent,
     mainCells    : [...m].slice(3, 13).map(td => td.textContent),
     cellColors   : [...m].slice(3, 13).map(td => td.style.backgroundColor || ''),
@@ -291,22 +291,22 @@ function initRealtime() {
     const doc = res.payload || {};
 
     if (ev.endsWith('.create')) {
-      if (document.querySelector(`tr[data-doc-id="${doc.$id}"]`)) return;
+      if (document.querySelector(`tr[data-doc-id=\"${doc.$id}\"]`)) return;
       addLectureRow(doc.priority, doc.lectureNumber, doc.teacherName,
                     doc.recordDate, doc.recordRoom, true, doc.$id);
       sortTable();
 
     } else if (ev.endsWith('.update')) {
-      const main = document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
+      const main = document.querySelector(`tr[data-doc-id=\"${doc.$id}\"]`);
       if (!main) return;
       const cost = main.nextElementSibling;
 
-      // ✅ خزّن ISO الحقيقي + أعِد تنسيق العرض
-      main.dataset.dateIso = doc.recordDate;
+      // ✅ خزّن ISO الحقيقي
+      main.dataset.dateIso = doc.recordDate;                          // ✅
 
       const dt2 = new Date(doc.recordDate);
       main.children[13].textContent = !isNaN(dt2.getTime())
-        ? new Intl.DateTimeFormat('ar-SY', { dateStyle:'short', timeStyle:'short', hour12:false }).format(dt2)
+        ? new Intl.DateTimeFormat('ar-SY', {dateStyle:'short',timeStyle:'short',hour12:false}).format(dt2)
         : '';
       main.children[14].textContent = doc.recordRoom;
       doc.mainCells.forEach((v,i) => main.children[3+i].textContent = v);
@@ -317,7 +317,7 @@ function initRealtime() {
       sortTable();
 
     } else if (ev.endsWith('.delete')) {
-      const main = document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
+      const main = document.querySelector(`tr[data-doc-id=\"${doc.$id}\"]`);
       if (main) {
         const cost = main.nextElementSibling;
         main.remove();
