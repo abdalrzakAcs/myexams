@@ -214,18 +214,28 @@ function syncRowUpdate(main, cost) {
 function collectRowData(main, cost) {
   const m = main.querySelectorAll('td');
   const c = cost.querySelectorAll('.cost-input');
+
+  // نص التاريخ المعروض داخل الخلية
+  const dateShown = m[13].textContent.trim();
+
+  // حاول تحويله إلى ISO. لو فشل اتركه كما هو لتتفادى الخطأ.
+  let dateIso = '';
+  const parsed = Date.parse(dateShown.replace(/\u200e|\u200f/g, ''));
+  if (!isNaN(parsed)) dateIso = new Date(parsed).toISOString();
+
   return {
     priority     : m[0].textContent,
     lectureNumber: m[1].textContent,
     teacherName  : m[2].textContent,
-    recordDate   : m[13].textContent,
+    recordDate   : dateIso || new Date().toISOString(),   // <-- هون التغيير
     recordRoom   : m[14].textContent,
-    mainCells    : [...m].slice(3,13).map(td => td.textContent),
-    cellColors   : [...m].slice(3,13).map(td => td.style.backgroundColor||''),
+    mainCells    : [...m].slice(3, 13).map(td => td.textContent),
+    cellColors   : [...m].slice(3, 13).map(td => td.style.backgroundColor || ''),
     costs        : [...c].map(td => td.textContent),
     totalCost    : cost.querySelector('.total-cell').textContent
   };
 }
+
 
 function loadFromAppwrite() {
   databases.listDocuments(databaseId, collectionId)
