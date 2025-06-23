@@ -79,16 +79,21 @@ function checkLogin() {
 
   account.get()
     .then(loadFromAppwrite)
-    .catch(() => account.createAnonymousSession()
-                        .then(loadFromAppwrite)
-                        .catch(console.error));
+    .catch(() =>
+      account.createAnonymousSession()
+        .then(() => {
+          loadFromAppwrite();    // ✅ حط هاد جوّا الـ then
+        })
+        .catch(console.error)
+    );
 
-  // ping كل 10 ثوانٍ للإبقاء على الاشتراك الحي
   setInterval(() =>
     databases.listDocuments(databaseId, collectionId, [], 1, 0).catch(() => {}),
     10000
   );
 }
+
+
 
 /*───────────────────────────────
  |  إضافة محاضرة جديدة
@@ -124,6 +129,9 @@ addBtn.addEventListener('click', async () => {
     console.error(e);
     alert('حصل خطأ أثناء الحفظ!');
   }
+});
+refreshBtn.addEventListener('click', () => {
+  loadFromAppwrite();     // 👉 بيرجع يحمّل الداتا من Appwrite
 });
 
 /*───────────────────────────────
