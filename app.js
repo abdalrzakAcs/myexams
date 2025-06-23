@@ -134,20 +134,24 @@ function addLectureRow(priority, num, teacher, dateTime, room, skipSave = false,
   const cost = document.createElement('tr');
   cost.classList.add('accounting-row');
 
+  // وثائق Appwrite
   if (docId) {
     main.dataset.docId = cost.dataset.docId = docId;
   }
-  // ✅ خزّن نسخة ISO من التاريخ
+
+  // ❗ خزّن نسخة ISO من التاريخ حتى لا نرجع للخلية المعروضة أبداً
   if (dateTime) {
     main.dataset.dateIso = new Date(dateTime).toISOString();
   }
 
+  // الأعمدة الثلاثة الأولى
   [priority, num, teacher].forEach(v => {
     const td = document.createElement('td');
     td.textContent = v;
     main.appendChild(td);
   });
 
+  // أعمدة العمل القابلة للتحرير
   for (let i = 0; i < 10; i++) {
     const td = document.createElement('td');
     td.contentEditable = true;
@@ -155,14 +159,13 @@ function addLectureRow(priority, num, teacher, dateTime, room, skipSave = false,
     main.appendChild(td);
   }
 
+  // عرض التاريخ للواجهة (فقط للقراءة)
   let formatted = '';
   if (dateTime) {
     const dt = new Date(dateTime);
     if (!isNaN(dt.getTime())) {
       formatted = new Intl.DateTimeFormat('ar-SY', {
-        dateStyle: 'short',
-        timeStyle: 'short',
-        hour12: false
+        dateStyle: 'short', timeStyle: 'short', hour12: false
       }).format(dt);
     }
   }
@@ -172,6 +175,7 @@ function addLectureRow(priority, num, teacher, dateTime, room, skipSave = false,
     main.appendChild(td);
   });
 
+  // أعمدة فارغة + زر الحذف
   for (let i = 0; i < 7; i++) main.appendChild(document.createElement('td'));
   main.appendChild(document.createElement('td'));
   const del = document.createElement('td');
@@ -180,6 +184,7 @@ function addLectureRow(priority, num, teacher, dateTime, room, skipSave = false,
   del.onclick = () => deleteRow(main, cost);
   main.appendChild(del);
 
+  /* صف المحاسبة */
   for (let i = 0; i < 3; i++) cost.appendChild(document.createElement('td'));
   for (let i = 0; i < 10; i++) {
     const td = document.createElement('td');
@@ -193,48 +198,70 @@ function addLectureRow(priority, num, teacher, dateTime, room, skipSave = false,
   cost.appendChild(totalCell);
   cost.appendChild(document.createElement('td'));
 
+  // أضف الصفين إلى الجدول
   tableBodyEl.append(main, cost);
 
+  // حفظ عند الخروج من الخلية
   [...main.querySelectorAll('[contenteditable]'),
    ...cost.querySelectorAll('[contenteditable]')]
     .forEach(td => td.addEventListener('blur', () => syncRowUpdate(main, cost)));
 
+  // أنشئ المستند في Appwrite إن كانت إضافة جديدة
   if (!skipSave) {
     saveRowToAppwrite(main, cost, dateTime, room);
   }
+
   applyPermissionsToRow(main, cost);
 }
 
-/*───────────────────────────────
- |  حذف صف
- *──────────────────────────────*/
-function deleteRow(main, cost) {
-  if (currentRole !== 'admin') return;
-  const id = main.dataset.docId;
-  main.remove();
-  cost.remove();
-  calculateSummary();
-  if (id) {
-    databases.deleteDocument(databaseId, collectionId, id).catch(console.error);
-  }
-}
 
 /*───────────────────────────────
- |  تحديث صف (حفظ بعد blur)
+ |  collectRowData  ⬅️ نسخة نهائية
  *──────────────────────────────*/
+function collectRowData(main, cost) {
+  const m = main.querySelectorAll('td');
+  const c = cost.querySelectorAll('.cost-input');
+
+  // دائماً ISO — لا تعتمد على النص المعروض
+  const dateIso = main.dataset.dateIso || new Date().toISOString();
+
+  return {
+    priority     : m[0].textContent,
+    lectureNumber: m[1].textContent,
+    teacherName  : m[2].textContent,
+    recordDate   : dateIso,
+    recordRoom   : m[14].textContent,
+    mainCells    : [...m].slice(3, 13).map(td => td.textContent),
+    cellColors   : [...m].slice(3, 13).map(td => td.style.backgroundColor || ''),
+    costs        : [...c].map(td => td.textContent),
+    totalCost    : cost.querySelector('.total-cell').textContent
+  };
+}
+
 function syncRowUpdate(main, cost) {
+  // نحفظ فقط إذا كان الجهاز متصل بالإنترنت
   if (!navigator.onLine) {
-    pushToQueue('update', { id: main.dataset.docId, data: collectRowData(main, cost) });
+    alert('أنت حالياً أوفلاين، لن يُحفظ أي تعديل حتى تعود للاتصال.');
     return;
   }
-  updateRowTotal(cost);
-  if (currentRole === 'accountant') return; // المحاسب فقط يحسب الإجمالي ولا يحدّث Appwrite
 
-  databases.updateDocument(databaseId, collectionId, main.dataset.docId, collectRowData(main, cost))
-           .catch(console.error);
+  // حدِّث مجموع التكاليف أوّلاً
+  updateRowTotal(cost);
+
+  // لا نرسل تحديث إذا كان الدور محاسب (مش مطلوب)
+  if (currentRole === 'accountant') return;
+
+  // أرسل التعديل إلى Appwrite فوراً
+  databases
+    .updateDocument(databaseId, collectionId, main.dataset.docId, collectRowData(main, cost))
+    .catch(err => {
+      console.error(err);
+      alert('تعذّر الحفظ في Appwrite، تأكد من الصلاحيات أو الاتصال.');
+    });
+
+  // أعد ترتيب الجدول بعد الحفظ
   sortTable();
 }
-
 /*───────────────────────────────
  |  تجميع بيانات الصف
  *──────────────────────────────*/
