@@ -1,3 +1,8 @@
+// My Exams – كامل السكربت بعد إصلاح حفظ التاريخ على Appwrite
+// ============================================================
+// ملاحظة: انسخ هذا الملف كما هو (أو ما بداخله) مكان السكربت القديم
+//         وسيُحَلّ مشكل عدم حفظ التعديلات نهائياً.
+
 const { Client, Databases, Account, ID } = Appwrite;
 const client = new Client()
   .setEndpoint('https://fra.cloud.appwrite.io/v1')
@@ -7,6 +12,7 @@ const databases = new Databases(client);
 const databaseId   = '68136c4cee33221deb0f';
 const collectionId = 'tasks';
 
+// عناصر DOM
 const $            = id => document.getElementById(id);
 const adminPass    = $('adminPass');
 const addBtn       = $('addBtn');
@@ -23,6 +29,7 @@ const teacherName  = $('teacherName');
 const recordDateTime = $('recordDateTime');
 const recordRoom   = $('recordRoom');
 
+// كلمات المرور والأدوار
 const PASSWORDS = {
   admin: 'Admin12',
   accountant: 'account123',
@@ -52,6 +59,9 @@ const editableByRole = {
   marketing: [22]
 };
 
+/*───────────────────────────────
+ |  تسجيل الدخول
+ *──────────────────────────────*/
 function checkLogin() {
   const pass = adminPass.value.trim();
   for (const [role, pwd] of Object.entries(PASSWORDS)) {
@@ -73,18 +83,22 @@ function checkLogin() {
                         .then(loadFromAppwrite)
                         .catch(console.error));
 
-  setInterval(() => 
-    databases.listDocuments(databaseId, collectionId, [], 1, 0)
-             .catch(() => {}),
+  // ping كل 10 ثوانٍ للإبقاء على الاشتراك الحي
+  setInterval(() =>
+    databases.listDocuments(databaseId, collectionId, [], 1, 0).catch(() => {}),
     10000
   );
 }
 
+/*───────────────────────────────
+ |  إضافة محاضرة جديدة
+ *──────────────────────────────*/
 addBtn.addEventListener('click', async () => {
   const priority = priorityFlag.checked ? '✅' : '❌';
   const lecture  = sessionNumber.value.trim();
   const teacher  = teacherName.value.trim();
   const dateTime = recordDateTime.value;
+
   if (!lecture || !teacher || !dateTime) {
     return alert('الرجاء ملء جميع الحقول');
   }
@@ -92,7 +106,7 @@ addBtn.addEventListener('click', async () => {
   const payload = {
     priority,
     lectureNumber: lecture,
-    teacherName: teacher,
+    teacherName : teacher,
     recordDate  : new Date(dateTime).toISOString(),
     recordRoom  : recordRoom.value,
     mainCells   : Array(10).fill(''),
@@ -112,21 +126,28 @@ addBtn.addEventListener('click', async () => {
   }
 });
 
+/*───────────────────────────────
+ |  إنشاء الصفين (رئيسي + محاسبة)
+ *──────────────────────────────*/
 function addLectureRow(priority, num, teacher, dateTime, room, skipSave = false, docId = null) {
   const main = document.createElement('tr');
   const cost = document.createElement('tr');
   cost.classList.add('accounting-row');
-  
+
   if (docId) {
     main.dataset.docId = cost.dataset.docId = docId;
   }
+  // ✅ خزّن نسخة الـ ISO للتاريخ حتى تبقى دائماً صحيحة للحفظ
+  main.dataset.dateIso = dateTime;
 
+  // --- الأعمدة الأساسية ---
   [priority, num, teacher].forEach(v => {
     const td = document.createElement('td');
     td.textContent = v;
     main.appendChild(td);
   });
 
+  // خلايا العمل (editable)
   for (let i = 0; i < 10; i++) {
     const td = document.createElement('td');
     td.contentEditable = true;
@@ -134,23 +155,23 @@ function addLectureRow(priority, num, teacher, dateTime, room, skipSave = false,
     main.appendChild(td);
   }
 
-let formatted = '';
-if (dateTime) {
-  const dt = new Date(dateTime);
-  if (!isNaN(dt.getTime())) {
-    formatted = new Intl.DateTimeFormat('ar-SY', {
-      dateStyle: 'short',
-      timeStyle: 'short',
-      hour12: false
-    }).format(dt);
+  // عرض التاريخ بشكل مقروء
+  let formatted = '';
+  if (dateTime) {
+    const dt = new Date(dateTime);
+    if (!isNaN(dt.getTime())) {
+      formatted = new Intl.DateTimeFormat('ar-SY', {
+        dateStyle: 'short', timeStyle: 'short', hour12: false
+      }).format(dt);
+    }
   }
-}
-[formatted, room].forEach(val => {
-  const td = document.createElement('td');
-  td.textContent = val;
-  main.appendChild(td);
-});
+  [formatted, room].forEach(val => {
+    const td = document.createElement('td');
+    td.textContent = val;
+    main.appendChild(td);
+  });
 
+  // أعمدة فارغة + زر الحذف
   for (let i = 0; i < 7; i++) main.appendChild(document.createElement('td'));
   main.appendChild(document.createElement('td'));
   const del = document.createElement('td');
@@ -159,6 +180,7 @@ if (dateTime) {
   del.onclick = () => deleteRow(main, cost);
   main.appendChild(del);
 
+  // صف المحاسبة
   for (let i = 0; i < 3; i++) cost.appendChild(document.createElement('td'));
   for (let i = 0; i < 10; i++) {
     const td = document.createElement('td');
@@ -172,10 +194,11 @@ if (dateTime) {
   cost.appendChild(totalCell);
   cost.appendChild(document.createElement('td'));
 
+  // أضف الصفين إلى الجدول
   tableBodyEl.append(main, cost);
 
-  [...main.querySelectorAll('[contenteditable]'),
-   ...cost.querySelectorAll('[contenteditable]')]
+  // مستمع blur للحفظ الفوري
+  [...main.querySelectorAll('[contenteditable]'), ...cost.querySelectorAll('[contenteditable]')]
     .forEach(td => td.addEventListener('blur', () => syncRowUpdate(main, cost)));
 
   if (!skipSave) {
@@ -184,6 +207,9 @@ if (dateTime) {
   applyPermissionsToRow(main, cost);
 }
 
+/*───────────────────────────────
+ |  حذف صف
+ *──────────────────────────────*/
 function deleteRow(main, cost) {
   if (currentRole !== 'admin') return;
   const id = main.dataset.docId;
@@ -191,43 +217,38 @@ function deleteRow(main, cost) {
   cost.remove();
   calculateSummary();
   if (id) {
-    databases.deleteDocument(databaseId, collectionId, id)
-             .catch(console.error);
+    databases.deleteDocument(databaseId, collectionId, id).catch(console.error);
   }
 }
 
+/*───────────────────────────────
+ |  تحديث صف (حفظ بعد blur)
+ *──────────────────────────────*/
 function syncRowUpdate(main, cost) {
   if (!navigator.onLine) {
-    pushToQueue('update', {
-      id: main.dataset.docId,
-      data: collectRowData(main, cost)
-    });
+    pushToQueue('update', { id: main.dataset.docId, data: collectRowData(main, cost) });
     return;
   }
   updateRowTotal(cost);
-  if (currentRole === 'accountant') return;
+  if (currentRole === 'accountant') return; // المحاسب فقط يحسب الإجمالي ولا يحدّث Appwrite
+
   databases.updateDocument(databaseId, collectionId, main.dataset.docId, collectRowData(main, cost))
            .catch(console.error);
   sortTable();
 }
 
+/*───────────────────────────────
+ |  تجميع بيانات الصف
+ *──────────────────────────────*/
 function collectRowData(main, cost) {
   const m = main.querySelectorAll('td');
   const c = cost.querySelectorAll('.cost-input');
-
-  // نص التاريخ المعروض داخل الخلية
-  const dateShown = m[13].textContent.trim();
-
-  // حاول تحويله إلى ISO. لو فشل اتركه كما هو لتتفادى الخطأ.
-  let dateIso = '';
-  const parsed = Date.parse(dateShown.replace(/\u200e|\u200f/g, ''));
-  if (!isNaN(parsed)) dateIso = new Date(parsed).toISOString();
 
   return {
     priority     : m[0].textContent,
     lectureNumber: m[1].textContent,
     teacherName  : m[2].textContent,
-    recordDate   : dateIso || new Date().toISOString(),   // <-- هون التغيير
+    recordDate   : main.dataset.dateIso || new Date().toISOString(), // ✅ دوماً ISO
     recordRoom   : m[14].textContent,
     mainCells    : [...m].slice(3, 13).map(td => td.textContent),
     cellColors   : [...m].slice(3, 13).map(td => td.style.backgroundColor || ''),
@@ -236,7 +257,9 @@ function collectRowData(main, cost) {
   };
 }
 
-
+/*───────────────────────────────
+ |  تحميل البيانات من Appwrite
+ *──────────────────────────────*/
 function loadFromAppwrite() {
   databases.listDocuments(databaseId, collectionId)
     .then(({ documents }) => {
@@ -253,12 +276,12 @@ function loadFromAppwrite() {
     .catch(console.error);
 }
 
+/*───────────────────────────────
+ |  Realtime
+ *──────────────────────────────*/
 let realtimeStarted = false;
 function initRealtimeOnce() {
-  if (!realtimeStarted) {
-    initRealtime();
-    realtimeStarted = true;
-  }
+  if (!realtimeStarted) { initRealtime(); realtimeStarted = true; }
 }
 
 function initRealtime() {
@@ -277,14 +300,14 @@ function initRealtime() {
       const main = document.querySelector(`tr[data-doc-id="${doc.$id}"]`);
       if (!main) return;
       const cost = main.nextElementSibling;
-     const dt2 = new Date(doc.recordDate);
-main.children[13].textContent = !isNaN(dt2.getTime())
-  ? new Intl.DateTimeFormat('ar-SY', {
-      dateStyle: 'short',
-      timeStyle: 'short',
-      hour12: false
-    }).format(dt2)
-  : '';
+
+      // ✅ خزّن ISO الحقيقي + أعِد تنسيق العرض
+      main.dataset.dateIso = doc.recordDate;
+
+      const dt2 = new Date(doc.recordDate);
+      main.children[13].textContent = !isNaN(dt2.getTime())
+        ? new Intl.DateTimeFormat('ar-SY', { dateStyle:'short', timeStyle:'short', hour12:false }).format(dt2)
+        : '';
       main.children[14].textContent = doc.recordRoom;
       doc.mainCells.forEach((v,i) => main.children[3+i].textContent = v);
       doc.cellColors.forEach((c,i) => main.children[3+i].style.backgroundColor = c || '');
@@ -305,6 +328,9 @@ main.children[13].textContent = !isNaN(dt2.getTime())
   });
 }
 
+/*───────────────────────────────
+ |  حساب المجموعات
+ *──────────────────────────────*/
 function updateRowTotal(costRow) {
   let sum = 0;
   costRow.querySelectorAll('.cost-input').forEach(c => {
@@ -324,19 +350,25 @@ function calculateSummary() {
   totalCostEl.textContent = total.toLocaleString();
 }
 
+/*───────────────────────────────
+ |  ترتيب الجدول
+ *──────────────────────────────*/
 function sortTable() {
   const pairs = [];
   for (let i = 0; i < tableBodyEl.children.length; i += 2) {
-    const main = tableBodyEl.children[i],
-          cost = tableBodyEl.children[i+1],
-          prio = main.children[0].textContent === '✅' ? 0 : 1,
-          t    = main.children[13]?.textContent.trim() || '2100-01-01 00:00';
-    pairs.push({ main, cost, prio, time: new Date(t.replace(/[\u200f\u200e]/g,'')).getTime() });
+    const main = tableBodyEl.children[i];
+    const cost = tableBodyEl.children[i+1];
+    const prio = main.children[0].textContent === '✅' ? 0 : 1;
+    const t    = main.dataset.dateIso || '2100-01-01T00:00:00Z';
+    pairs.push({ main, cost, prio, time: new Date(t).getTime() });
   }
   pairs.sort((a,b) => a.prio - b.prio || a.time - b.time)
        .forEach(p => tableBodyEl.append(p.main, p.cost));
 }
 
+/*───────────────────────────────
+ |  طابور العمل دون اتصال
+ *──────────────────────────────*/
 const localQueueKey = 'myExamsQueue_v1';
 function pushToQueue(action, payload) {
   const q = JSON.parse(localStorage.getItem(localQueueKey) || '[]');
@@ -351,10 +383,7 @@ async function flushQueue() {
   for (const item of q) {
     try {
       if (item.action === 'update') {
-        await databases.updateDocument(
-          databaseId, collectionId,
-          item.payload.id, item.payload.data
-        );
+        await databases.updateDocument(databaseId, collectionId, item.payload.id, item.payload.data);
       }
     } catch (e) { console.error('Sync error', e); return; }
   }
@@ -365,9 +394,13 @@ window.addEventListener('online',  () => { offlineBadge.classList.add('hidden');
 window.addEventListener('offline', () => { offlineBadge.classList.remove('hidden'); });
 if (!navigator.onLine) offlineBadge.classList.remove('hidden');
 
+/*───────────────────────────────
+ |  إنشاء مستند جديد في Appwrite
+ *──────────────────────────────*/
 function saveRowToAppwrite(main, cost, dateTime, room) {
-  const m = main.querySelectorAll('td'),
-        c = cost.querySelectorAll('.cost-input');
+  const m = main.querySelectorAll('td');
+  const c = cost.querySelectorAll('.cost-input');
+
   const data = {
     priority       : m[0].textContent,
     lectureNumber  : m[1].textContent,
@@ -379,6 +412,7 @@ function saveRowToAppwrite(main, cost, dateTime, room) {
     costs          : [...c].map(td => td.textContent),
     totalCost      : cost.querySelector('.total-cell').textContent
   };
+
   databases.createDocument(databaseId, collectionId, ID.unique(), data)
            .then(doc => {
              main.dataset.docId = cost.dataset.docId = doc.$id;
@@ -386,6 +420,9 @@ function saveRowToAppwrite(main, cost, dateTime, room) {
            .catch(console.error);
 }
 
+/*───────────────────────────────
+ |  الصلاحيات (عرض / تحرير)
+ *──────────────────────────────*/
 function applyPermissions() {
   const rows = [...tableBodyEl.querySelectorAll('tr')];
   const header = $('taskTable').querySelector('thead tr');
@@ -397,9 +434,9 @@ function applyPermissions() {
 
 function applyPermissionsToRow(main, cost) {
   if (!main) return;
-  const cols    = roleCols[currentRole];
+  const cols     = roleCols[currentRole];
   const editable = editableByRole[currentRole] || [];
-  const cells   = [...main.children];
+  const cells    = [...main.children];
 
   cells.forEach((td,i) => {
     const show = cols === 'all' || cols.includes(i);
@@ -419,20 +456,17 @@ function applyPermissionsToRow(main, cost) {
   const last = main.children[cells.length-1];
   last.classList.toggle('hidden', currentRole !== 'admin');
 }
-/*─────────────────────────────────────────────
- |  قوائم مخصّصة للحالة والأسماء
- *────────────────────────────────────────────*/
 
-// ❶ حدد عناوين الأعمدة
+/*───────────────────────────────
+ |  قوائم مخصّصة للحالة والأسماء (كليك يمين)
+ *──────────────────────────────*/
 const statusHeaders = [
   "تنسيق","رفع","إدخال ملف","رفع أسئلة","إدخال أسئلة",
   "التصوير","مونتاج","إدخال فيديو","تصميم/كتابة","تسويق"
 ];
-const nameHeaders   = [
-  "منسق","رافع","مدخل","المصور","ممنتج","الكاتب"
-];
+const nameHeaders   = ["منسق","رافع","مدخل","المصور","ممنتج","الكاتب"];
 
-// ❷ استخرج أرقام الأعمدة من الـ <thead>
+// استخرج أرقام الأعمدة
 const statusCols = [], nameCols = [];
 document.querySelectorAll('#taskTable thead th').forEach((th, idx) => {
   const txt = th.textContent.trim();
@@ -440,95 +474,65 @@ document.querySelectorAll('#taskTable thead th').forEach((th, idx) => {
   if (nameHeaders  .includes(txt)) nameCols  .push(idx);
 });
 
-// ❸ بيانات القوائم
 const statusOptions = [
-  { label: "لم يتم التدخل",                 color: ""        },
-  { label: "يتم العمل",                     color: "#fff6a3" },
-  { label: "تم العمل والتدقيق ولم يُسلَّم", color: "#ffd86a" },
-  { label: "منجز",                          color: "#b5f8b1" }
+  { label:"لم يتم التدخل",                 color:""        },
+  { label:"يتم العمل",                     color:"#fff6a3" },
+  { label:"تم العمل والتدقيق ولم يُسلَّم", color:"#ffd86a" },
+  { label:"منجز",                          color:"#b5f8b1" }
 ];
 const employeeNames = ["محمد","أحمد","علي","نور","خالد","منى","هبة"];
-const colorsCycle   = statusOptions.map(o => o.color); // لأزرار اليسار
 
-// ❹ أداة إنشاء قائمة عائمة
-function showMenu(items, x, y, onSelect, td){
+function showMenu(items, x, y, td){
   const menu = document.createElement('div');
   menu.className = 'custom-menu';
-  menu.style.cssText = `
-    position:fixed;left:${x}px;top:${y}px;z-index:10000;
-    background:#fff;border:1px solid #ccc;border-radius:8px;
-    box-shadow:0 4px 12px rgba(0,0,0,.15);font-family:Cairo;padding:4px;
-  `;
-  items.forEach(item=>{
+  menu.style.cssText = `position:fixed;left:${x}px;top:${y}px;z-index:10000;background:#fff;border:1px solid #ccc;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);font-family:Cairo;padding:4px;`;
+  items.forEach(item => {
     const row = document.createElement('div');
     row.textContent = item.label || item;
-    row.style.cssText = `
-      padding:8px 18px;cursor:pointer;white-space:nowrap;
-      background:${item.color || '#fff'};
-    `;
+    row.style.cssText = `padding:8px 18px;cursor:pointer;white-space:nowrap;background:${item.color || '#fff'};`;
     row.onmouseover = () => row.style.backgroundColor = '#eee';
     row.onmouseout  = () => row.style.backgroundColor = item.color || '#fff';
-row.onclick = () => {
-  const isStatus = !!item.color || typeof item.color === 'string';
-  td.textContent = item.label ?? item;
-  if (isStatus) td.style.backgroundColor = item.color;
-
-  const mainRow = td.parentElement;
-  const costRow = mainRow.nextElementSibling?.classList.contains('accounting-row')
-                  ? mainRow.nextElementSibling
-                  : null;
-
-  (typeof syncRowUpdate === 'function'
-      ? syncRowUpdate
-      : window.syncRowUpdate)(mainRow, costRow);
-
-  menu.remove();
-};
-
+    row.onclick = () => {
+      const isStatus = typeof item === 'object' && 'color' in item;
+      td.textContent = item.label ?? item;
+      if (isStatus) td.style.backgroundColor = item.color;
+      const mainRow = td.parentElement;
+      const costRow = mainRow.nextElementSibling?.classList.contains('accounting-row') ? mainRow.nextElementSibling : null;
+      syncRowUpdate(mainRow, costRow);
+      menu.remove();
+    };
     menu.appendChild(row);
   });
   document.body.appendChild(menu);
-  document.addEventListener('click', ()=>menu.remove(), { once:true });
+  document.addEventListener('click', () => menu.remove(), { once:true });
 }
 
-// ❺ كليك يمين: افتح القائمة المناسبة
-document.addEventListener('contextmenu', e=>{
+document.addEventListener('contextmenu', e => {
   const td = e.target.closest('td');
-  if(!td || !td.isContentEditable) return;
-
+  if (!td || !td.isContentEditable) return;
   const col = td.cellIndex;
-  if(nameCols.includes(col)){            // قائمة أسماء
+  if (nameCols.includes(col)) {                      // قائمة أسماء
     e.preventDefault();
-    showMenu(employeeNames, e.clientX, e.clientY, name => {
-  td.textContent = name;
-  td.dispatchEvent(new Event('blur'));
-}, td);
-  }else if(statusCols.includes(col)){    // قائمة الحالة
+    showMenu(employeeNames, e.clientX, e.clientY, td);
+  } else if (statusCols.includes(col)) {             // قائمة حالة
     e.preventDefault();
-   showMenu(statusOptions, e.clientX, e.clientY, opt => {
-  td.textContent = opt.label;
-  td.style.backgroundColor = opt.color;
-  td.dispatchEvent(new Event('blur'));
-}, td);
+    showMenu(statusOptions, e.clientX, e.clientY, td);
   }
 });
 
-// ❻ كليك يسار على عمود حالة: بدّل اللون
-// ❻ منع الكليك اليسار من تنفيذ أي تغيير (خليه للتعديل فقط)
+// منع أي تبديل لون بالـ click العادي (خليه للتعديل فقط)
 document.addEventListener('click', e => {
   const td = e.target.closest('td');
   if (!td || !td.isContentEditable) return;
 });
 
-
-// مساعد لتحويل rgb() إلى ‎#hex
-function toHex(rgb){
-  if(!rgb) return '';
-  if(rgb.startsWith('#')) return rgb.toLowerCase();
+// محوّل rgb() ▸ #hex (يُستخدم لو حبيت تحفظ اللون كـ hex)
+function toHex(rgb) {
+  if (!rgb) return '';
+  if (rgb.startsWith('#')) return rgb.toLowerCase();
   const res = /^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/.exec(rgb);
-  return res
-    ? "#" + res.slice(1).map(n=>('0'+(+n).toString(16)).slice(-2)).join('')
-    : '';
+  return res ? '#' + res.slice(1).map(n=>('0'+(+n).toString(16)).slice(-2)).join('') : '';
 }
 
-
+/*───────────────────────────────*/
+// انتهى السكربت ✅
